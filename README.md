@@ -40,8 +40,8 @@ QueryContainer
 
 ## Example:
 
-Filename: TestBusinessFactory
-Project: Pyz
+- Filename: TestBusinessFactory
+- Project: Pyz
 
 Generates:
 
@@ -67,5 +67,6 @@ class TestBusinessFactory extends AbstractBusinessFactory
 
 ## Comments?
 
-Right now the repository contains just the first idea of something that should become a proper SprykerPhpStorm-Plugin, so if you have any ideas how to improve/extend, please let me know!
+Right now the repository contains just the first idea of something that should become a proper SprykerPhpStorm-Plugin, so if you have any ideas how to improve/extend please let me know.
+
 
