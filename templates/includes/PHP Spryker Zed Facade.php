@@ -1,0 +1,7 @@
+#set ( $bundle = $NAME.replace('Facade', '') )
+#set ( $namespaceBundle = $project + '\Zed\' + $bundle )
+#set ( $namespace = $namespaceBundle  + '\Business')
+#set ( $bundleFactory = '\' + $namespaceBundle + '\Business\' + $bundle + 'BusinessFactory' )
+#set ( $parent = 'AbstractFacade' )
+#set ( $parentFQNS = 'Spryker\Zed\Kernel\Business\AbstractFacade' )
+#set ( $docMethods = { $bundleFactory : 'getFactory()' } )
