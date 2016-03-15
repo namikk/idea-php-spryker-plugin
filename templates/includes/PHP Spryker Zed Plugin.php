@@ -1,4 +1,6 @@
+#if ( !$bundleName )
 #set ( $bundle = $NAME.replace('Plugin', '') )
+#end
 #set ( $namespaceBundle = $project + '\Zed\' + $bundle )
 #set ( $namespace = $namespaceBundle  + '\Communication')
 #set ( $bundleFactory = '\' + $namespaceBundle + '\Communication\' + $bundle + 'CommunicationFactory' )

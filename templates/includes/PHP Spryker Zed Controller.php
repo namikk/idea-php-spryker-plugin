@@ -1,4 +1,6 @@
+#if ( !$bundle )
 #set ( $bundle = $NAME.replace('Controller', '') )
+#end
 #set ( $namespaceBundle = $project + '\Zed\' + $bundle )
 #set ( $namespace = $project + '\Zed\' + $bundle  + '\Communication\Controller')
 #set ( $parent = 'AbstractController' )

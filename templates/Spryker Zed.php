@@ -9,6 +9,9 @@
 #set ( $classVariable = {} )
 #set ( $classVariables = [] )
 #set ( $arg = $project )
+#if ( $bundleName )
+#set ( $bundle = $bundleName )
+#end
 
 #if ( $NAME.endsWith('Facade') )
 #parse ( 'PHP Spryker Zed Facade' )

@@ -23,18 +23,20 @@
 3. Enter filename (e.g. ProductBusinessFactory ) & project namespace (eg. Pyz or Spryker):
     -> The template will automatically match the suffix of the filename and creates the class-properties of the type.
 
+Note: For Controller and Plugins it is also possible to enter the bundle-name, as for those classes the name may differ from the bundle-name. 
+
 Currently supported Spryker Classes:
 
 ```
 Bridge
 Config
-Controller
+Controller (bundle-name can be set)
+Plugin (bundle-name can be set)
 DependencyProvider
 Facade
 BusinessFactory
 CommunicationFactory
 PersistenceFactory
-Plugin
 QueryContainer
 ```
 
