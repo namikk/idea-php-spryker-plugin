@@ -1,0 +1,118 @@
+<idea-plugin version="0.1">
+  <id>pav.sprykerFileCreator.plugin</id>
+  <name>Spryker Plugin</name>
+  <version>0.1</version>
+  <vendor email="tobias.rosenstock@project-a.com" url="http://www.project-a.com">Project A Ventures</vendor>
+  <depends>com.jetbrains.php</depends>
+  <depends>com.intellij.modules.platform</depends>
+
+  <description><![CDATA[
+    <h1>Spryker Plugin</h1>
+    <br/>
+    <h2>Functions</h2>
+    <ul>
+        <li>Creation of Spryker-Classes</li>
+        <li>DocBlock Updater</li>
+    </ul>
+    ]]></description>
+
+  <change-notes><![CDATA[
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="141.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!--<projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="Config" />-->
+    <projectService serviceInterface="pav.sprykerFileCreator.config.SprykerPluginConfig" serviceImplementation="pav.sprykerFileCreator.config.SprykerPluginConfig"/>
+
+    <intentionAction>
+      <className>pav.sprykerFileCreator.action.SprykerUpdateClassDocBlockIntention</className>
+      <category>PHP</category>
+      <descriptionDirectoryName>SprykerUpdateClassDocBlockIntention</descriptionDirectoryName>
+    </intentionAction>
+
+  </extensions>
+
+  <actions>
+    <action id="SprykerCreateYvesController" class="pav.sprykerFileCreator.action.newGroup.YvesControllerAction"
+            text="Create Yves Controller" description="Create Yves Controller">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateYvesFactory" class="pav.sprykerFileCreator.action.newGroup.YvesFactoryAction"
+            text="Create Yves Factory" description="Create Yves Factory">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateYvesDependencyProvider" class="pav.sprykerFileCreator.action.newGroup.YvesDependencyProviderAction"
+            text="Create Yves DependencyProvider" description="Create Yves DependencyProvider">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateYvesPlugin" class="pav.sprykerFileCreator.action.newGroup.YvesPluginAction"
+            text="Create YvesPlugin" description="Create YvesPlugin">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateClient" class="pav.sprykerFileCreator.action.newGroup.ClientAction"
+            text="Create Client" description="Create Client">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateClientDependencyProvider" class="pav.sprykerFileCreator.action.newGroup.ClientDependencyProviderAction"
+            text="Create ClientDependencyProvider" description="Create ClientDependencyProvider">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateClientFactory" class="pav.sprykerFileCreator.action.newGroup.ClientFactoryAction"
+            text="Create ClientFactory" description="Create ClientFactory">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateClientPlugin" class="pav.sprykerFileCreator.action.newGroup.ClientPluginAction"
+            text="Create ClientPlugin" description="Create ClientPlugin">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedBusinessFactory" class="pav.sprykerFileCreator.action.newGroup.ZedBusinessFactoryAction"
+            text="Create Zed Business Factory" description="Create Zed Business Factory">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedCommunicationFactory" class="pav.sprykerFileCreator.action.newGroup.ZedCommunicationFactoryAction"
+            text="Create Zed Communication Factory" description="Create Zed Communication Factory">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedConfig" class="pav.sprykerFileCreator.action.newGroup.ZedConfigAction"
+            text="Create Zed Config" description="Create Zed Config">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedController" class="pav.sprykerFileCreator.action.newGroup.ZedControllerAction"
+            text="Create Zed Controller" description="Create Zed Controller">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedDependencyProvider" class="pav.sprykerFileCreator.action.newGroup.ZedDependencyProviderAction"
+            text="Create Zed DependencyProvider" description="Create Zed DependencyProvider">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedFacade" class="pav.sprykerFileCreator.action.newGroup.ZedFacadeAction"
+            text="Create Zed Facade" description="Create Zed Facade">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedPersistenceFactory" class="pav.sprykerFileCreator.action.newGroup.ZedPersistenceFactoryAction"
+            text="Create Zed Persistence Factory" description="Create Zed Persistence Factory">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedPlugin" class="pav.sprykerFileCreator.action.newGroup.ZedPluginAction"
+            text="Create Zed Plugin" description="Create Zed Plugin">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+    <action id="SprykerCreateZedQueryContainer" class="pav.sprykerFileCreator.action.newGroup.ZedQueryContainerAction"
+            text="Create Zed QueryContainer" description="Create Zed QueryContainer">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+
+  </actions>
+
+</idea-plugin>

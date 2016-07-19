@@ -14,5 +14,10 @@ GPATH
 GRTAGS
 GTAGS
 
+
 # OS
 .DS_Store
+
+# vagrant stuff
+.vagrant
+
