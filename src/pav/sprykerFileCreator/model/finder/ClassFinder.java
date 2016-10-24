@@ -7,12 +7,13 @@ import org.jetbrains.annotations.NotNull;
 import pav.sprykerFileCreator.model.renderer.dto.PhpClassInterface;
 import pav.sprykerFileCreator.model.renderer.dto.PhpClassItem;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class ClassFinder implements ClassFinderInterface {
     private Project project;
 
-    public ClassFinder(Project project) {
+    public ClassFinder(@NotNull Project project) {
         this.project = project;
     }
 
@@ -38,10 +39,14 @@ public class ClassFinder implements ClassFinderInterface {
         return null;
     }
 
-
     @NotNull
     private Collection<PhpClass> getPhpClassCollection(String fullQualifiedName) {
-        return PhpIndex.getInstance(project).getAnyByFQN(fullQualifiedName);
+        try {
+            PhpIndex phpIndex = PhpIndex.getInstance(this.project);
+            return phpIndex.getAnyByFQN(fullQualifiedName);
+        } catch (IllegalStateException exception) {
+            return new ArrayList<PhpClass>();
+        }
     }
 
 }

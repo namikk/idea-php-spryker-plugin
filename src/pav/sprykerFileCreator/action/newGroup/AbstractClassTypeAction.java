@@ -10,11 +10,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import pav.sprykerFileCreator.model.ModelFactory;
+import pav.sprykerFileCreator.model.definition.ClassDefinitionInterface;
 import pav.sprykerFileCreator.model.generator.SprykerConstants;
 import pav.sprykerFileCreator.model.manager.ClassManagerInterface;
 import pav.sprykerFileCreator.model.matcher.ClassTypeMatcherInterface;
 
 import javax.swing.*;
+import java.lang.instrument.ClassDefinition;
 import java.util.HashMap;
 
 abstract public class AbstractClassTypeAction extends CreateElementActionBase {
@@ -54,6 +56,10 @@ abstract public class AbstractClassTypeAction extends CreateElementActionBase {
 
         PsiElement[] psiElements = new PsiElement[1];
 
+        if (project == null) {
+            return psiElements;
+        }
+
         try {
             ClassTypeMatcherInterface classTypeMatcher = this.getModelFactory().createClassTypeMatcher();
             String projectName = classTypeMatcher.matchProjectName(classType, psiDirectory);
@@ -92,9 +98,25 @@ abstract public class AbstractClassTypeAction extends CreateElementActionBase {
     protected Boolean classTypeMatchesDir(PsiDirectory directory) {
         try {
             ModelFactory modelFactory = this.getModelFactory();
+            String classType = this.getClassType();
             ClassTypeMatcherInterface classTypeMatcher = modelFactory.createClassTypeMatcher();
 
-            return classTypeMatcher.classTypeMatchesDir(this.getClassType(), directory);
+            if (!classTypeMatcher.classTypeMatchesDir(classType, directory)) {
+                return false;
+            }
+
+            String bundleName = classTypeMatcher.matchBundleName(classType, directory);
+
+            ClassDefinitionInterface classDefinition = this.getModelFactory()
+                    .createDefinitionProvider()
+                    .getDefinitionByType(classType);
+
+            String className = classDefinition.
+                    getNamePattern()
+                    .replace(SprykerConstants.BUNDLE_NAME_PLACEHOLDER, bundleName);
+
+            return directory.findFile(className + ".php") == null;
+
         } catch (Exception exception) {
             return false;
         }

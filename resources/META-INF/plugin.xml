@@ -1,7 +1,7 @@
-<idea-plugin version="0.1">
+<idea-plugin version="1">
   <id>pav.sprykerFileCreator.plugin</id>
   <name>Spryker Plugin</name>
-  <version>0.1</version>
+  <version>1</version>
   <vendor email="tobias.rosenstock@project-a.com" url="http://www.project-a.com">Project A Ventures</vendor>
   <depends>com.jetbrains.php</depends>
   <depends>com.intellij.modules.platform</depends>
@@ -110,6 +110,21 @@
     </action>
     <action id="SprykerCreateZedQueryContainer" class="pav.sprykerFileCreator.action.newGroup.ZedQueryContainerAction"
             text="Create Zed QueryContainer" description="Create Zed QueryContainer">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+
+    <action id="SprykerCreateClientBundle" class="pav.sprykerFileCreator.action.newGroup.bundle.ClientBundleAction"
+            text="Create Client Bundle" description="Create Client Bundle">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+
+    <action id="SprykerCreateZedBundle" class="pav.sprykerFileCreator.action.newGroup.bundle.ZedBundleAction"
+            text="Create Zed Bundle" description="Create Zed Bundle">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+
+    <action id="SprykerCreateYvesBundle" class="pav.sprykerFileCreator.action.newGroup.bundle.YvesBundleAction"
+            text="Create Yves Bundle" description="Create Yves Bundle">
       <add-to-group group-id="NewGroup" anchor="last"/>
     </action>
 

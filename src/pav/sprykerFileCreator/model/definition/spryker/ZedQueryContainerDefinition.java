@@ -27,7 +27,9 @@ public class ZedQueryContainerDefinition implements ClassDefinitionInterface {
 
     @Override
     public String[] getDocBlockClasses() {
-        String [] docBlockClasses = {};
+        String [] docBlockClasses = {
+                SprykerConstants.ZED_PERSISTENCE_FACTORY
+        };
 
         return docBlockClasses;
     }

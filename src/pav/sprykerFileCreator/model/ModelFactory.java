@@ -48,6 +48,10 @@ public class ModelFactory {
         );
     }
 
+    public DefinitionProviderInterface createDefinitionProvider() {
+        return new DefinitionProvider();
+    }
+
     private ClassResolverInterface createClassResolver(Project project, String projectName) {
         if (this.classResolver == null) {
             this.classResolver = new ClassResolver(
@@ -79,10 +83,6 @@ public class ModelFactory {
 
     private FileWriterInterface createFileWriter(Project project) {
         return new FileWriter(project);
-    }
-
-    private DefinitionProviderInterface createDefinitionProvider() {
-        return new DefinitionProvider();
     }
 
     private ParentGeneratorInterface createParentGenerator(Project project, String projectName) {

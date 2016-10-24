@@ -45,29 +45,6 @@ public class ClassTypeMatcher implements ClassTypeMatcherInterface {
         return namespacePattern +  "\\\\" + namePattern;
     }
 
-//    public ArrayList<String> matchClassTypesByDir(PsiDirectory directory) {
-//        Collection<ClassDefinitionInterface> classDefinitions = this.definitionProvider
-//                .getAllClassDefinitions()
-//                .values();
-//
-//        ArrayList<String> matchedTypes = new ArrayList<String>();
-//        String dir = directory.toString();
-//        dir = dir.replace("/", "\\");
-//
-//        for (ClassDefinitionInterface classDefinition : classDefinitions) {
-//
-//            String bundleName = this.matchBundleName(classDefinition.getClassType(), directory);
-//            String namespacePattern = this.getNamespacePattern(classDefinition, );
-//
-//            Boolean matched = Pattern.matches("^.*" + namespacePattern + WILDCARD, dir);
-//            if (matched) {
-//                matchedTypes.add(classDefinition.getClassType());
-//            }
-//        }
-//
-//        return matchedTypes;
-//    }
-
     @Override
     public Boolean classTypeMatchesDir(String classType, PsiDirectory directory) throws Exception {
         ClassDefinitionInterface classDefinition = definitionProvider.getDefinitionByType(classType);

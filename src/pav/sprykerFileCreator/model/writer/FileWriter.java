@@ -6,6 +6,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.util.FileContentUtil;
 import com.jetbrains.php.lang.PhpFileType;
 import org.jetbrains.annotations.NotNull;
 import pav.sprykerFileCreator.model.ModelFactory;
@@ -13,6 +14,8 @@ import pav.sprykerFileCreator.model.generator.SprykerConstants;
 import pav.sprykerFileCreator.model.manager.ClassManagerInterface;
 import pav.sprykerFileCreator.model.matcher.ClassTypeMatcher;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 public class FileWriter implements FileWriterInterface {
@@ -34,6 +37,7 @@ public class FileWriter implements FileWriterInterface {
         PsiFile file = PsiFileFactory
                 .getInstance(project)
                 .createFileFromText(fileName + ".php", PhpFileType.INSTANCE, phpClassContent);
+
 
         new WriteCommandAction(this.project) {
 

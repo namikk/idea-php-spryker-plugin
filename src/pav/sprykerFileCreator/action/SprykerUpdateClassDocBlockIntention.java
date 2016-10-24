@@ -6,6 +6,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.jetbrains.php.lang.psi.PhpPsiUtil;
 import com.jetbrains.php.lang.psi.elements.PhpClass;
@@ -45,9 +46,9 @@ public class SprykerUpdateClassDocBlockIntention extends PsiElementBaseIntention
 
     @Override
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement psiElement) {
-        PhpClass phpClass = PhpPsiUtil.getParentByCondition(psiElement, PhpClass.INSTANCEOF);
 
-        if (phpClass == null) {
+        PhpClass phpClass = PsiTreeUtil.getParentOfType(psiElement, PhpClass.class);
+        if(phpClass == null) {
             return false;
         }
 

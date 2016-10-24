@@ -30,6 +30,8 @@ public class ZedPluginDefinition implements ClassDefinitionInterface {
         String [] docBlockClasses = {
                 SprykerConstants.ZED_COMMUNICATION_FACTORY,
                 SprykerConstants.ZED_FACADE,
+                SprykerConstants.ZED_CONFIG,
+                SprykerConstants.ZED_QUERY_CONTAINER,
         };
 
         return docBlockClasses;

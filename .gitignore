@@ -21,3 +21,5 @@ GTAGS
 # vagrant stuff
 .vagrant
 
+# Java
+/out
