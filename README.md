@@ -36,6 +36,6 @@ It also possible to generate base classes of Spryker automatically.
 To create a new bundle:
 
 - right-click the app directory (Yves, Zed or Client)
-- select `New and `Create (Yves|Zed|Client) Bundle`
+- select `New and `Create Yves|Zed|Client Bundle`
 
 ![Generate DocBlock](https://raw.githubusercontent.com/project-a/idea-php-spryker-plugin/master/docs/create_spryker_bundle.gif)
