@@ -15,13 +15,15 @@ Features
 The Spryker-Plugin was built to improve the daily development-experience with the Spryker-Framework.
 
 
-1. Generate DocBlocks automatically
+## 1. Generate DocBlocks automatically
+
 Some of the Spryker base classes, have very special DocBlocks. In order to generate them with the help of the Plugin, browse to the class, press `alt` + `enter` and select `Update Spryker DocBlock`.
 
 
 ![Generate DocBlock](https://raw.githubusercontent.com/project-a/idea-php-spryker-plugin/master/docs/update_docblock.gif)
 
-2. Generate Spryker-Classes
+## 2. Generate Spryker-Classes
+
 It also possible to generate base classes of Spryker automatically.
 
 - right-click the directory in the project structure
@@ -29,7 +31,8 @@ It also possible to generate base classes of Spryker automatically.
 
 ![Generate DocBlock](https://raw.githubusercontent.com/project-a/idea-php-spryker-plugin/master/docs/create_spryker_file.gif)
 
-3. Bundle Generation
+## 3. Bundle Generation
+
 To create a new bundle:
 
 - right-click the app directory (Yves, Zed or Client)
