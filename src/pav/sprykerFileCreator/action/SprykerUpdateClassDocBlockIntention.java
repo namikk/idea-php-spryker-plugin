@@ -37,7 +37,7 @@ public class SprykerUpdateClassDocBlockIntention extends PsiElementBaseIntention
                 try {
                     command.updateDocBlock(phpClass, project);
                 } catch (Exception exception) {
-                    System.out.print(exception.toString());
+                    exception.printStackTrace();
                 }
             });
         }, "Add Spryker DocBlock", null);

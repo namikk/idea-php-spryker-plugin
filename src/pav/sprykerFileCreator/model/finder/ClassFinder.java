@@ -45,7 +45,7 @@ public class ClassFinder implements ClassFinderInterface {
             PhpIndex phpIndex = PhpIndex.getInstance(this.project);
             return phpIndex.getAnyByFQN(fullQualifiedName);
         } catch (IllegalStateException exception) {
-            return new ArrayList<PhpClass>();
+            return new ArrayList<>();
         }
     }
 

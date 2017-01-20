@@ -30,11 +30,13 @@ public class DefinitionProvider implements DefinitionProviderInterface {
 
     public ClassDefinitionInterface getDefinitionByType(String classType) throws Exception {
 
-        if (!classDefinitions.containsKey(classType)) {
+        ClassDefinitionInterface classDefinition = classDefinitions.get(classType);
+
+        if (classDefinition == null) {
             throw new Exception("Class definition was not found: " + classType);
         }
 
-        return classDefinitions.get(classType);
+        return classDefinition;
     }
 
     public HashMap<String, ClassDefinitionInterface> getAllClassDefinitions() {
