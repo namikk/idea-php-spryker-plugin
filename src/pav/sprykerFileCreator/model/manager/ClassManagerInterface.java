@@ -8,5 +8,6 @@ import java.util.HashMap;
 public interface ClassManagerInterface {
 
     PsiElement handleClass(PsiDirectory fileDirectory, String classType, HashMap<String, String> classConfig) throws Exception;
+    PsiElement writeFile(PsiDirectory fileDirectory, String fileName, String phpClassContent) throws Exception;
 
 }

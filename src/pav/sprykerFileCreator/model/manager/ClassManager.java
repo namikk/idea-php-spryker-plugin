@@ -32,7 +32,7 @@ public class ClassManager implements ClassManagerInterface {
         return this.writeFile(fileDirectory, phpClass.getName(), phpClassContent);
     }
 
-    private PsiElement writeFile(PsiDirectory fileDirectory, String fileName, String phpClassContent) throws Exception{
+    public PsiElement writeFile(PsiDirectory fileDirectory, String fileName, String phpClassContent) throws Exception{
         return this.fileWriter.writeFile(fileDirectory, fileName, phpClassContent);
     }
 
