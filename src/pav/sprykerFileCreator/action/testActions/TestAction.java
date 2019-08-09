@@ -1,5 +1,6 @@
 package pav.sprykerFileCreator.action.testActions;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -9,7 +10,10 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
+import com.intellij.openapi.vfs.pointers.VirtualFilePointerListener;
+import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.search.FilenameIndex;
@@ -47,9 +51,9 @@ public class TestAction extends AnAction {
         String projectName = anActionEvent.getProject().getName();
         String projectBasePath = anActionEvent.getProject().getBasePath();
 
-        VirtualFile file = context.getData(CommonDataKeys.VIRTUAL_FILE);
-        String filePath = file.getPath();
-        VirtualFile folder = file.getParent();
+        VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+        String filePath = virtualFile.getPath();
+        VirtualFile folder = virtualFile.getParent();
         Editor editor = context.getData(CommonDataKeys.EDITOR);
 
         PsiFileFactory factory = PsiFileFactory.getInstance(anActionEvent.getProject());
@@ -59,21 +63,32 @@ public class TestAction extends AnAction {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
 
                 PhpFile phpFile = (PhpFile) psiFile;
+
                 //@tod check why phpfile shenanigans don't work; async issues?
-                phpFile.getVirtualFile().refresh(false, false);
+//                phpFile.getVirtualFile().refresh(false, false);
                 String sprykerNamespace = phpFile.getMainNamespaceName();
 
-                String filename = file.getName();
+                String filename = virtualFile.getName();
 
-                String oldFilepath = file.getPath();
+                String oldFilepath = virtualFile.getPath();
+
+
+                VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
+                    @Override
+                    public void contentsChanged(@NotNull VirtualFileEvent event) {
+                        System.out.println("something happened");
+                        String filename = event.getFileName();
+                        System.out.println("wut now?");
+                        VirtualFile file = event.getFile();
+                        //@todo this works for existing files, but not for ones...
+                        //@todo psi file and php file??
+                    }
+                });
 
                 //@todo make it work for other spryker namespaces (SprykerShop etc.)
                 //@todo move string to constants
-//                String projectNamespace = sprykerNamespace.replace("Spryker", "Pyz").replace("\\", "/");
-
-//                String newPath = projectBasePath + "/src" + projectNamespace + "/" + filename;
                 String newPath = projectBasePath + oldFilepath.substring(oldFilepath.indexOf("/src/")).replace("Spryker", "Pyz").replace("\\", "/");
-                byte[] fileContents = file.contentsToByteArray();
+                byte[] fileContents = virtualFile.contentsToByteArray();
                 File newFileJavaio = new File(newPath);
                 newFileJavaio.getParentFile().mkdirs();
                 FileWriter writer = new FileWriter(newFileJavaio.getAbsoluteFile());
@@ -81,18 +96,34 @@ public class TestAction extends AnAction {
                 bw.write(new String(fileContents));
                 bw.close();
 
+
                 //@todo navigate to newly created file
 
+///////////
+                Disposable wtf = new Disposable() {
+                    @Override
+                    public void dispose() {
+                        System.out.println("are you nuts?");
+                    }
+                };
+
+                VirtualFilePointer pointer = VirtualFilePointerManager.getInstance().create(filename, wtf, new VirtualFilePointerListener() {
+                    @Override
+                    public void beforeValidityChanged(@NotNull VirtualFilePointer[] pointers) {
+                        System.out.println("-.-");
+                    }
+                });
+
+                String omfg = pointer.getFileName();
+                VirtualFile asd = pointer.getFile();
+///////////
+                VirtualFile asdqwde = LocalFileSystem.getInstance().findFileByIoFile(newFileJavaio);
+//////////
                 PsiFile newPsiFile = this.getNewPsiFile(project, filename, newPath);
+                VirtualFile newVirtualFile = LocalFileSystem.getInstance().findFileByPath(newPath);
+                VirtualFile refreshedFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(newPath);
 
-                newPsiFile.getVirtualFile().refresh(false, false);
-//                newPsiFile.getVirtualFile().refresh(false, true);
-
-//                VirtualFile newVirtualFile = LocalFileSystem.getInstance().findFileByPath(newPath);
-//                newVirtualFile.refresh(false, false);
-
-//                VirtualFile refreshedFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(newPath);
-                OpenFileDescriptor meh = new OpenFileDescriptor(project, newPsiFile.getVirtualFile());
+                OpenFileDescriptor meh = new OpenFileDescriptor(project, refreshedFile);
                 meh.navigate(true);
 
 //                MultiMap<String, PhpNamedElement> map = phpFile.getTopLevelDefs();
@@ -100,9 +131,6 @@ public class TestAction extends AnAction {
 //                    Object key = entry.getKey();
 //                    Object value = entry.getValue();
 //                }
-
-//                PsiDirectory psiDirectory = psiFile.getContainingDirectory();
-//                String folderPath = folder.getPath();
             } catch (IOException exception) {
                 //@todo show dialog: failed to read/write file
                 return;
