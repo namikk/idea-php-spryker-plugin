@@ -9,10 +9,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.search.FilenameIndex;
@@ -31,10 +28,10 @@ public class TestAction extends AnAction {
         super("Test Action", "Test Action Description", IconLoader.getIcon("testAction.png"));
     }
 
-    private PsiFile doStuff(Project project, String filename, String fullPath) {
+    private PsiFile getNewPsiFile(Project project, String filename, String fullPath) {
         PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
 
-        for (PsiFile file: files) {
+        for (PsiFile file : files) {
             if (file.getName().equals(filename)) {
                 return file;
             }
@@ -62,17 +59,20 @@ public class TestAction extends AnAction {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
 
                 PhpFile phpFile = (PhpFile) psiFile;
+                //@tod check why phpfile shenanigans don't work; async issues?
                 phpFile.getVirtualFile().refresh(false, false);
-                phpFile.getVirtualFile().refresh(false, true);
+                String sprykerNamespace = phpFile.getMainNamespaceName();
 
                 String filename = file.getName();
-                //@todo handle null; should I use file path instead of namespace?
-                String sprykerNamespace = phpFile.getMainNamespaceName();
+
+                String oldFilepath = file.getPath();
+
                 //@todo make it work for other spryker namespaces (SprykerShop etc.)
                 //@todo move string to constants
-                String projectNamespace = sprykerNamespace.replace("Spryker", "Pyz").replace("\\", "/");
+//                String projectNamespace = sprykerNamespace.replace("Spryker", "Pyz").replace("\\", "/");
 
-                String newPath = projectBasePath + "/src" + projectNamespace + "/" + filename;
+//                String newPath = projectBasePath + "/src" + projectNamespace + "/" + filename;
+                String newPath = projectBasePath + oldFilepath.substring(oldFilepath.indexOf("/src/")).replace("Spryker", "Pyz").replace("\\", "/");
                 byte[] fileContents = file.contentsToByteArray();
                 File newFileJavaio = new File(newPath);
                 newFileJavaio.getParentFile().mkdirs();
@@ -83,10 +83,10 @@ public class TestAction extends AnAction {
 
                 //@todo navigate to newly created file
 
-                PsiFile newPsiFile = this.doStuff(project, filename, newPath);
+                PsiFile newPsiFile = this.getNewPsiFile(project, filename, newPath);
 
                 newPsiFile.getVirtualFile().refresh(false, false);
-                newPsiFile.getVirtualFile().refresh(false, true);
+//                newPsiFile.getVirtualFile().refresh(false, true);
 
 //                VirtualFile newVirtualFile = LocalFileSystem.getInstance().findFileByPath(newPath);
 //                newVirtualFile.refresh(false, false);
