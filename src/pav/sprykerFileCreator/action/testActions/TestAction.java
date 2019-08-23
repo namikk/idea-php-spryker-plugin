@@ -91,7 +91,22 @@ public class TestAction extends AnAction {
                 String newlyCreatedFilePath = newlyCreatedFile.getPath();
                 newlyCreatedContents = newlyCreatedFile.contentsToByteArray();
 
-                VirtualFile existingFolderFile = projectRootFile.findOrCreateChildData(project, "src");
+
+                //@todo recursively
+                //@todo check if target file already exists first
+//                projectRootFile.findFileByRelativePath()
+
+                VirtualFile folder1 = projectRootFile.findChild("folder1");
+                if (folder1 == null) {
+                    folder1 = projectRootFile.createChildDirectory(project, "folder1");
+                }
+                folder1.refresh(false, false);
+                //@todo check if thing exists and is dir first?
+                VirtualFile folder2 = folder1.createChildDirectory(project, "folder2");
+                folder2.refresh(false, false);
+                VirtualFile folder3 = folder2.createChildDirectory(project, "folder3");
+                VirtualFile folder4 = folder3.createChildDirectory(project, "folder4");
+                VirtualFile file1 = folder4.findOrCreateChildData(project, "file1.txt");
 
 
 //                PsiDirectoryFactory.getInstance(project).createDirectory();
@@ -100,6 +115,8 @@ public class TestAction extends AnAction {
 
 //                PsiFileFactory.getInstance(project).createFileFromText("test", "test");
 //                PsiDirectoryFactory.getInstance(project).createDirectory(virtualFile).add(psiFile);
+
+
 
 
                 //@todo make it work for other spryker namespaces (SprykerShop etc.)
