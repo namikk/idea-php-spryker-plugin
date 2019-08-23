@@ -4,17 +4,23 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiManager;
+import com.intellij.util.containers.MultiMap;
 import com.jetbrains.php.lang.psi.PhpFile;
+import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
+import com.jetbrains.php.lang.psi.elements.PhpNamedElement;
+import com.jetbrains.php.lang.psi.elements.PhpNamespace;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Collection;
 
 public class TestAction extends AnAction {
     private Project project;
@@ -27,15 +33,9 @@ public class TestAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         this.project = anActionEvent.getProject();
         DataContext context = anActionEvent.getDataContext();
-        String projectBasePath = anActionEvent.getProject().getBasePath();
-
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+
         String filePath = virtualFile.getPath();
-        VirtualFile folder = virtualFile.getParent();
-        Editor editor = context.getData(CommonDataKeys.EDITOR);
-
-        PsiFileFactory factory = PsiFileFactory.getInstance(anActionEvent.getProject());
-
         if (filePath.contains("vendor/spryker")) {
             try {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
@@ -49,13 +49,50 @@ public class TestAction extends AnAction {
                 byte[] fileContents = virtualFile.contentsToByteArray();
                 VirtualFile newFile = this.findOrCreateFile(newFilePath, fileContents);
 
-                //@todo phpFile/psiFile shenanigans
-                //@todo find a way to parse php file
-                //@todo find a way to alter php code
-                String sprykerNamespace = phpFile.getMainNamespaceName();
-
                 OpenFileDescriptor meh = new OpenFileDescriptor(this.project, newFile);
                 meh.navigate(true);
+
+                PsiFile newPsiFile = PsiManager.getInstance(this.project).findFile(newFile);
+                PhpFile newPhpFile = (PhpFile) newPsiFile;
+
+                MultiMap<String, PhpNamedElement> map = newPhpFile.getTopLevelDefs();
+
+                for (String key : map.keySet()) {
+                    Collection<PhpNamedElement> elementCollection = map.get(key);
+
+                    for (PhpNamedElement element : elementCollection) {
+                        if (element instanceof PhpNamespace) {
+                            if (element.getFirstChild().getText().equals("namespace")) {
+                                PsiElement namespaceElement = element.getFirstChild().getNextSibling().getNextSibling();
+                                String namespaceElementText = namespaceElement.getText();
+                                namespaceElementText = namespaceElementText.substring(0, namespaceElementText.length() - 1).replace("Spryker", "Pyz");
+
+                                PsiElement testasd = PhpPsiElementFactory.createNamespaceReference(this.project, namespaceElementText, false);
+                                WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                    namespaceElement.replace(testasd);
+                                });
+                            }
+                        }
+                    }
+
+                }
+                //@todo modify use statement to use overridden spryker class
+                //@todo modify extend statement to extend overridden spryker class
+                //@todo modify class content to remove all old code?
+/*
+//@todo try to use accept maybe?
+                newPhpFile.accept(new PsiElementVisitor() {
+                    @Override
+                    public void visitElement(PsiElement element) {
+                        if (element instanceof PhpNamespace) {
+                            WriteCommandAction.runWriteCommandAction(this.project, element::delete);
+                        }
+
+                        ProgressIndicatorProvider.checkCanceled();
+                    }
+                });
+*/
+                newPhpFile.getVirtualFile().refresh(false, false);
             } catch (IOException exception) {
                 //@todo show dialog: failed to read/write file
                 return;
@@ -117,12 +154,10 @@ public class TestAction extends AnAction {
 
     @Override
     public void update(@NotNull AnActionEvent anActionEvent) {
-        //@todo should change to checking if current file is in vendor/spryker folder and then enable/disable plugin action accordingly?
-
-        //@todo uncomment this
-//        Project project = anActionEvent.getProject();
-//        anActionEvent.getPresentation().setEnabledAndVisible(project != null);
-
+        DataContext context = anActionEvent.getDataContext();
+        VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+        String filePath = virtualFile.getPath();
+        anActionEvent.getPresentation().setEnabledAndVisible(filePath.contains("vendor/spryker"));
     }
 
 }
