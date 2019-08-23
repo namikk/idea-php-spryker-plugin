@@ -45,7 +45,7 @@
 
   <actions>
 
-    <action id="TestPlugin.TestMenuAction" text="Test Menu Action" description="Test menu" class="pav.sprykerFileCreator.action.testActions.TestAction">
+    <action id="TestPlugin.TestMenuAction" text="Override Spryker Class" description="Test menu" class="pav.sprykerFileCreator.action.testActions.TestAction">
       <add-to-group group-id="EditMenu" anchor="last" />
     </action>
 <!--    <action id="TestPlugin.CreateFileAction" class="pav.sprykerFileCreator.action.testActions.CreateFileAction" text="Create File Action" description="Create file action">-->

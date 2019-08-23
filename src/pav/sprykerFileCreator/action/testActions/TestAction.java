@@ -1,11 +1,14 @@
 package pav.sprykerFileCreator.action.testActions;
 
+import com.intellij.ide.util.PlatformPackageUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -14,8 +17,10 @@ import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
 import com.intellij.openapi.vfs.pointers.VirtualFilePointerListener;
 import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.jetbrains.php.lang.psi.PhpFile;
@@ -29,7 +34,7 @@ import java.io.IOException;
 public class TestAction extends AnAction {
 
     public TestAction() {
-        super("Test Action", "Test Action Description", IconLoader.getIcon("testAction.png"));
+        super("Test Action");
     }
 
     private PsiFile getNewPsiFile(Project project, String filename, String fullPath) {
@@ -68,26 +73,39 @@ public class TestAction extends AnAction {
 //                phpFile.getVirtualFile().refresh(false, false);
                 String sprykerNamespace = phpFile.getMainNamespaceName();
 
-                String filename = virtualFile.getName();
 
+
+                String filename = virtualFile.getName();
                 String oldFilepath = virtualFile.getPath();
 
+                VirtualFile projectRootFile = project.getBaseDir();
+                VirtualFile secondChildTest = projectRootFile.findFileByRelativePath("src");
+                String test2 = secondChildTest.getPath();
 
-                VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
-                    @Override
-                    public void contentsChanged(@NotNull VirtualFileEvent event) {
-                        System.out.println("something happened");
-                        String filename = event.getFileName();
-                        System.out.println("wut now?");
-                        VirtualFile file = event.getFile();
-                        //@todo this works for existing files, but not for ones...
-                        //@todo psi file and php file??
-                    }
-                });
+                VirtualFile oldParent = virtualFile.getParent();
+
+                VirtualFile newlyCreatedFile = projectRootFile.findOrCreateChildData(project, "test.asdfghh");
+                byte[] newlyCreatedContents = newlyCreatedFile.contentsToByteArray();
+                newlyCreatedFile.setBinaryContent(virtualFile.contentsToByteArray());
+                newlyCreatedFile.refresh(false ,false);
+                String newlyCreatedFilePath = newlyCreatedFile.getPath();
+                newlyCreatedContents = newlyCreatedFile.contentsToByteArray();
+
+                VirtualFile existingFolderFile = projectRootFile.findOrCreateChildData(project, "src");
+
+
+//                PsiDirectoryFactory.getInstance(project).createDirectory();
+//                GlobalSearchScope scope, String packageName, PsiDirectory baseDir, boolean askUserToCreate, ThreeState chooseFlag;
+//                PlatformPackageUtil.findOrCreateDirectoryForPackage(project, null, scope, packageName, baseDir, false, chooseFlag);
+
+//                PsiFileFactory.getInstance(project).createFileFromText("test", "test");
+//                PsiDirectoryFactory.getInstance(project).createDirectory(virtualFile).add(psiFile);
+
 
                 //@todo make it work for other spryker namespaces (SprykerShop etc.)
                 //@todo move string to constants
-                String newPath = projectBasePath + oldFilepath.substring(oldFilepath.indexOf("/src/")).replace("Spryker", "Pyz").replace("\\", "/");
+
+                String newPath = projectBasePath + oldFilepath.substring(oldFilepath.indexOf("/src/")).replaceAll("/src/.*?/", "/src/Pyz/").replace("\\", "/");
                 byte[] fileContents = virtualFile.contentsToByteArray();
                 File newFileJavaio = new File(newPath);
                 newFileJavaio.getParentFile().mkdirs();
@@ -123,8 +141,8 @@ public class TestAction extends AnAction {
                 VirtualFile newVirtualFile = LocalFileSystem.getInstance().findFileByPath(newPath);
                 VirtualFile refreshedFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(newPath);
 
-                OpenFileDescriptor meh = new OpenFileDescriptor(project, refreshedFile);
-                meh.navigate(true);
+//                OpenFileDescriptor meh = new OpenFileDescriptor(project, refreshedFile);
+//                meh.navigate(true);
 
 //                MultiMap<String, PhpNamedElement> map = phpFile.getTopLevelDefs();
 //                for (Map.Entry entry: map.entrySet()) {
