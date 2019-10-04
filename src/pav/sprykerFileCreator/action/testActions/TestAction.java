@@ -67,6 +67,8 @@ public class TestAction extends AnAction {
                     for (PhpNamedElement element : elementCollection) {
                         if (element instanceof PhpNamespace) {
                             if (element.getFirstChild().getText().equals("namespace")) {
+                                PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
+
                                 /**
                                  * Replace Spryker namespace with Pyz
                                  */
@@ -88,22 +90,22 @@ public class TestAction extends AnAction {
                                     PsiElement finalNamespaceElement = element.getLastChild().getPrevSibling().getPrevSibling().getPrevSibling();
 
                                     String finalNamespaceElementText = finalNamespaceElement.getText();
-
-                                    PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
                                     String className = ((PhpClassImpl) classElement).getName();
 
                                     PhpUseList newUseStatement = PhpPsiElementFactory.createUseStatement(this.project, oldBaseNamespaceElementText + finalNamespaceElementText + "\\" + className, "Spryker" + className);
-                                    PsiElement firsUseStatementElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
 
+                                    this.removeOldUseStatements();
+
+                                    //@todo place new use statement in the correct spot (after namespace, and before class docblock)
                                     WriteCommandAction.runWriteCommandAction(this.project, () -> {
-                                        element.addBefore(newUseStatement, firsUseStatementElement);
+                                        element.addBefore(newUseStatement, classElement);
                                     });
                                 }
+
 
                                 /**
                                  * Add extends statement for overridden Spryker class
                                  */
-                                PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
                                 String className = ((PhpClassImpl) classElement).getName();
                                 PsiElement extendsListElement = this.getFirstElementOfType(ExtendsListImpl.class.getName());
 
@@ -119,7 +121,6 @@ public class TestAction extends AnAction {
                 }
 
                 //@todo modify class content to remove all old code?
-                //@todo remove all old use statements
                 //@todo focus new file in project tree
                 newPhpFile.getVirtualFile().refresh(false, false);
             } catch (IOException exception) {
@@ -130,6 +131,18 @@ public class TestAction extends AnAction {
             Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
             return;
         }
+    }
+
+    private void removeOldUseStatements() {
+        //@todo enable when class code is removed
+        return;
+//        WriteCommandAction.runWriteCommandAction(this.project, () -> {
+//            PsiElement nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
+//            while (nextUseListElement != null) {
+//                nextUseListElement.delete();
+//                nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
+//            }
+//        });
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
@@ -182,6 +195,7 @@ public class TestAction extends AnAction {
 
         String filename = folderPathParts[folderPathParts.length - 1];
 
+        //@todo exception is thrown somewhere around here
         VirtualFile newFile = latestFolder.findOrCreateChildData(this.project, filename);
         newFile.setBinaryContent(contents);
         newFile.refresh(false, false);
