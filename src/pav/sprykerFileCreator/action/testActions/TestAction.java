@@ -13,11 +13,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.MultiMap;
+import com.jetbrains.php.lang.inspections.quickfix.PhpExchangeExtendsImplementsQuickFix;
 import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
-import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
-import com.jetbrains.php.lang.psi.elements.impl.PhpUseListImpl;
+import com.jetbrains.php.lang.psi.elements.impl.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -100,12 +100,24 @@ public class TestAction extends AnAction {
                                     });
                                 }
 
+                                /**
+                                 * Add extends statement for overridden Spryker class
+                                 */
+                                PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
+                                String className = ((PhpClassImpl) classElement).getName();
+                                PsiElement extendsListElement = this.getFirstElementOfType(ExtendsListImpl.class.getName());
+
+                                PsiElement extendsElement = PhpPsiElementFactory.createExtendsList(this.project, "Spryker" + className);
+
+                                WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                    extendsListElement.replace(extendsElement);
+                                });
+
                             }
                         }
                     }
                 }
 
-                //@todo modify extend statement to extend overridden spryker class
                 //@todo modify class content to remove all old code?
                 //@todo remove all old use statements
                 //@todo focus new file in project tree
