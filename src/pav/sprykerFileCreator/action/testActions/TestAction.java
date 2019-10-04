@@ -15,8 +15,9 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.MultiMap;
 import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
-import com.jetbrains.php.lang.psi.elements.PhpNamedElement;
-import com.jetbrains.php.lang.psi.elements.PhpNamespace;
+import com.jetbrains.php.lang.psi.elements.*;
+import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
+import com.jetbrains.php.lang.psi.elements.impl.PhpUseListImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -24,6 +25,8 @@ import java.util.Collection;
 
 public class TestAction extends AnAction {
     private Project project;
+    private MultiMap<String, PhpNamedElement> map;
+    private PhpFile newPhpFile;
 
     public TestAction() {
         super("Test Action");
@@ -36,6 +39,7 @@ public class TestAction extends AnAction {
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
 
         String filePath = virtualFile.getPath();
+        //@todo improve path checking?
         if (filePath.contains("vendor/spryker")) {
             try {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
@@ -55,7 +59,8 @@ public class TestAction extends AnAction {
                 PsiFile newPsiFile = PsiManager.getInstance(this.project).findFile(newFile);
                 PhpFile newPhpFile = (PhpFile) newPsiFile;
 
-                MultiMap<String, PhpNamedElement> map = newPhpFile.getTopLevelDefs();
+                this.map = newPhpFile.getTopLevelDefs();
+                this.newPhpFile = newPhpFile;
 
                 for (String key : map.keySet()) {
                     Collection<PhpNamedElement> elementCollection = map.get(key);
@@ -63,35 +68,48 @@ public class TestAction extends AnAction {
                     for (PhpNamedElement element : elementCollection) {
                         if (element instanceof PhpNamespace) {
                             if (element.getFirstChild().getText().equals("namespace")) {
-                                PsiElement namespaceElement = element.getFirstChild().getNextSibling().getNextSibling();
-                                String namespaceElementText = namespaceElement.getText();
-                                namespaceElementText = namespaceElementText.substring(0, namespaceElementText.length() - 1).replace("Spryker", "Pyz");
+                                /**
+                                 * Replace Spryker namespace with Pyz
+                                 */
+                                PsiElement baseNamespaceElement = element.getFirstChild().getNextSibling().getNextSibling();
 
-                                PsiElement testasd = PhpPsiElementFactory.createNamespaceReference(this.project, namespaceElementText, false);
+                                String oldBaseNamespaceElementText = baseNamespaceElement.getText();
+                                String newBaseNamespaceElementText = oldBaseNamespaceElementText.substring(0, oldBaseNamespaceElementText.length() - 1).replace("Spryker", "Pyz");
+
+                                PsiElement newNamespaceElement = PhpPsiElementFactory.createNamespaceReference(this.project, newBaseNamespaceElementText, false);
+
                                 WriteCommandAction.runWriteCommandAction(this.project, () -> {
-                                    namespaceElement.replace(testasd);
+                                    baseNamespaceElement.replace(newNamespaceElement);
                                 });
+
+                                /**
+                                 * Add use statement for overridden Spryker class
+                                 */
+                                if (!oldBaseNamespaceElementText.contains("Pyz")) {
+                                    PsiElement finalNamespaceElement = element.getLastChild().getPrevSibling().getPrevSibling().getPrevSibling();
+
+                                    String finalNamespaceElementText = finalNamespaceElement.getText();
+
+                                    PsiElement classElement2 = this.getClassElement();
+                                    PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
+                                    String className = ((PhpClassImpl) classElement).getName();
+
+                                    PhpUseList newUseStatement = PhpPsiElementFactory.createUseStatement(this.project, oldBaseNamespaceElementText + finalNamespaceElementText + "\\" + className, "Spryker" + className);
+                                    PsiElement firsUseStatementElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
+
+                                    WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                        element.addBefore(newUseStatement, firsUseStatementElement);
+                                    });
+                                }
+
                             }
                         }
                     }
-
                 }
-                //@todo modify use statement to use overridden spryker class
+
                 //@todo modify extend statement to extend overridden spryker class
                 //@todo modify class content to remove all old code?
-/*
-//@todo try to use accept maybe?
-                newPhpFile.accept(new PsiElementVisitor() {
-                    @Override
-                    public void visitElement(PsiElement element) {
-                        if (element instanceof PhpNamespace) {
-                            WriteCommandAction.runWriteCommandAction(this.project, element::delete);
-                        }
-
-                        ProgressIndicatorProvider.checkCanceled();
-                    }
-                });
-*/
+                //@todo remove all old use statements
                 newPhpFile.getVirtualFile().refresh(false, false);
             } catch (IOException exception) {
                 //@todo show dialog: failed to read/write file
@@ -101,6 +119,62 @@ public class TestAction extends AnAction {
             Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
             return;
         }
+
+
+    }
+
+    private PsiElement getFirstUseElement() {
+        for (String key : this.map.keySet()) {
+            Collection<PhpNamedElement> elementCollection = map.get(key);
+
+            for (PhpNamedElement element : elementCollection) {
+                if (element instanceof PhpUse) {
+                    return element.getPrevSibling().getPrevSibling();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
+        PsiElement element = null;
+        PsiElement[] children = parentElement.getChildren();
+
+        for (PsiElement child : children) {
+            if (element != null) {
+                return element;
+            }
+            if (child.getClass().getName().equals(elementTypeName)) {
+                element = child;
+            } else {
+                element = this.getFirstElementOfType(elementTypeName, child);
+            }
+        }
+
+        return element;
+    }
+
+    private PsiElement getFirstElementOfType(String elementName) {
+        return this.getFirstElementOfType(elementName, this.newPhpFile.getOriginalElement());
+    }
+
+    public PsiElement getClassElement() {
+        PsiElement classElement = null;
+        for (String key : this.map.keySet()) {
+            Collection<PhpNamedElement> elementCollection = map.get(key);
+
+            for (PhpNamedElement element : elementCollection) {
+                if (element instanceof PhpClass) {
+                    classElement = element;
+                    break;
+                }
+            }
+        }
+
+        return classElement;
+    }
+
 
 //        StringBuffer dlgMsg = new StringBuffer(anActionEvent.getPresentation().getText() + " Selected");
 //        String dlgTitle = anActionEvent.getPresentation().getDescription();
@@ -115,7 +189,6 @@ public class TestAction extends AnAction {
 //        Project this.project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 //        String text = Messages.showInputDialog(this.project, "Where is your god now!?", "Puny Mortal.", Messages.getQuestionIcon());
 //        Messages.showMessageDialog(this.project, "Hello, " + text, "Information", Messages.getInformationIcon());
-    }
 
     public VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
         VirtualFile projectRootFile = this.project.getBaseDir();
@@ -159,5 +232,4 @@ public class TestAction extends AnAction {
         String filePath = virtualFile.getPath();
         anActionEvent.getPresentation().setEnabledAndVisible(filePath.contains("vendor/spryker"));
     }
-
 }
