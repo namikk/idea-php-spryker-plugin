@@ -57,10 +57,9 @@ public class TestAction extends AnAction {
                 meh.navigate(true);
 
                 PsiFile newPsiFile = PsiManager.getInstance(this.project).findFile(newFile);
-                PhpFile newPhpFile = (PhpFile) newPsiFile;
 
-                this.map = newPhpFile.getTopLevelDefs();
-                this.newPhpFile = newPhpFile;
+                this.newPhpFile = (PhpFile) newPsiFile;
+                this.map = this.newPhpFile.getTopLevelDefs();
 
                 for (String key : map.keySet()) {
                     Collection<PhpNamedElement> elementCollection = map.get(key);
@@ -90,7 +89,6 @@ public class TestAction extends AnAction {
 
                                     String finalNamespaceElementText = finalNamespaceElement.getText();
 
-                                    PsiElement classElement2 = this.getClassElement();
                                     PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
                                     String className = ((PhpClassImpl) classElement).getName();
 
@@ -110,6 +108,7 @@ public class TestAction extends AnAction {
                 //@todo modify extend statement to extend overridden spryker class
                 //@todo modify class content to remove all old code?
                 //@todo remove all old use statements
+                //@todo focus new file in project tree
                 newPhpFile.getVirtualFile().refresh(false, false);
             } catch (IOException exception) {
                 //@todo show dialog: failed to read/write file
@@ -119,22 +118,6 @@ public class TestAction extends AnAction {
             Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
             return;
         }
-
-
-    }
-
-    private PsiElement getFirstUseElement() {
-        for (String key : this.map.keySet()) {
-            Collection<PhpNamedElement> elementCollection = map.get(key);
-
-            for (PhpNamedElement element : elementCollection) {
-                if (element instanceof PhpUse) {
-                    return element.getPrevSibling().getPrevSibling();
-                }
-            }
-        }
-
-        return null;
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
@@ -158,37 +141,6 @@ public class TestAction extends AnAction {
     private PsiElement getFirstElementOfType(String elementName) {
         return this.getFirstElementOfType(elementName, this.newPhpFile.getOriginalElement());
     }
-
-    public PsiElement getClassElement() {
-        PsiElement classElement = null;
-        for (String key : this.map.keySet()) {
-            Collection<PhpNamedElement> elementCollection = map.get(key);
-
-            for (PhpNamedElement element : elementCollection) {
-                if (element instanceof PhpClass) {
-                    classElement = element;
-                    break;
-                }
-            }
-        }
-
-        return classElement;
-    }
-
-
-//        StringBuffer dlgMsg = new StringBuffer(anActionEvent.getPresentation().getText() + " Selected");
-//        String dlgTitle = anActionEvent.getPresentation().getDescription();
-//
-//        Navigatable nav = anActionEvent.getData(CommonDataKeys.NAVIGATABLE);
-//
-//        if (nav != null) {
-//            dlgMsg.append(String.format("/nSelected Element: %s", nav.toString()));
-//        }
-//        Messages.showMessageDialog(currentProject, dlgMsg.toString(), dlgTitle, Messages.getInformationIcon());
-//
-//        Project this.project = anActionEvent.getData(PlatformDataKeys.PROJECT);
-//        String text = Messages.showInputDialog(this.project, "Where is your god now!?", "Puny Mortal.", Messages.getQuestionIcon());
-//        Messages.showMessageDialog(this.project, "Hello, " + text, "Information", Messages.getInformationIcon());
 
     public VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
         VirtualFile projectRootFile = this.project.getBaseDir();
