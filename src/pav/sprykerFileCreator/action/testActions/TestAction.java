@@ -13,7 +13,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.MultiMap;
+import com.jetbrains.php.lang.documentation.phpdoc.psi.PhpDocComment;
 import com.jetbrains.php.lang.inspections.quickfix.PhpExchangeExtendsImplementsQuickFix;
+import com.jetbrains.php.lang.lexer.PhpTokenTypes;
+import com.jetbrains.php.lang.psi.PhpElementType;
 import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
@@ -84,6 +87,32 @@ public class TestAction extends AnAction {
                                 });
 
                                 /**
+                                 * Delete class content
+                                 */
+                                WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                    Collection<Field> classFields = ((PhpClassImpl) classElement).getFields();
+                                    for (Field classField: classFields) {
+                                        //@todo delete public const keywords as well
+                                        classField.getPrevSibling().delete();
+                                        classField.delete();
+                                    }
+
+                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
+                                    for (Method classMethod: classMethods) {
+                                        PhpDocComment methodComment = classMethod.getDocComment();
+                                        if (methodComment != null) {
+                                            methodComment.delete();
+                                        }
+                                        classMethod.delete();
+                                    }
+
+                                    PhpDocComment classDocComment = ((PhpClassImpl) classElement).getDocComment();
+                                    if (classDocComment != null) {
+                                        classDocComment.delete();
+                                    }
+                                });
+
+                                /**
                                  * Add use statement for overridden Spryker class
                                  */
                                 if (!oldBaseNamespaceElementText.contains("Pyz")) {
@@ -101,7 +130,6 @@ public class TestAction extends AnAction {
                                         element.addBefore(newUseStatement, classElement);
                                     });
                                 }
-
 
                                 /**
                                  * Add extends statement for overridden Spryker class
@@ -134,15 +162,13 @@ public class TestAction extends AnAction {
     }
 
     private void removeOldUseStatements() {
-        //@todo enable when class code is removed
-        return;
-//        WriteCommandAction.runWriteCommandAction(this.project, () -> {
-//            PsiElement nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
-//            while (nextUseListElement != null) {
-//                nextUseListElement.delete();
-//                nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
-//            }
-//        });
+        WriteCommandAction.runWriteCommandAction(this.project, () -> {
+            PsiElement nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
+            while (nextUseListElement != null) {
+                nextUseListElement.delete();
+                nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
+            }
+        });
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
@@ -195,8 +221,13 @@ public class TestAction extends AnAction {
 
         String filename = folderPathParts[folderPathParts.length - 1];
 
-        //@todo exception is thrown somewhere around here
-        VirtualFile newFile = latestFolder.findOrCreateChildData(this.project, filename);
+        VirtualFile newFile;
+        try {
+            newFile = latestFolder.findOrCreateChildData(this.project, filename);
+        } catch (IOException exception) {
+            String msg = exception.getMessage();
+            return null;
+        }
         newFile.setBinaryContent(contents);
         newFile.refresh(false, false);
 
