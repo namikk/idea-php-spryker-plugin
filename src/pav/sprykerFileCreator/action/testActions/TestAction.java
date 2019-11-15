@@ -20,6 +20,7 @@ import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
+import com.jetbrains.php.lang.psi.elements.impl.MethodImpl;
 import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +42,7 @@ public class TestAction extends AnAction {
     }
 
     private void initConfig() {
-        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "true");
+        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "false");
         this.config.put(TestAction.ALLOW_ANY_NAMESPACE, "false");
     }
 
@@ -104,7 +105,25 @@ public class TestAction extends AnAction {
                                 });
 
                                 if (this.config.get(TestAction.OVERRIDE_CLASS_CONTENT).equals("true")) {
-                                    //@todo override all parent classes and call parent:: methods instead of parent method content
+                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
+                                    for (Method classMethod : classMethods) {
+                                        //@todo override all parent classes and call parent:: methods instead of parent method content
+                                        String methodText = classMethod.getText();
+                                        String methodName = classMethod.getName();
+                                        Parameter[] methodParameters =  classMethod.getParameters();
+                                        PsiElement methodBody = classMethod.getLastChild();
+
+
+                                        //@todo moe logic to separate function
+//                                        MethodImpl
+
+//                                        methodBody.
+                                        PhpReturn returnElement = PhpPsiElementFactory.createReturnStatement(this.project, "true");
+                                        PhpPsiElementFactory.createFromText(this.project, PsiElement, "{");
+
+
+                                        PhpDocComment methodComment = classMethod.getDocComment();
+                                    }
                                 } else {
                                     /**
                                      * Delete class content
