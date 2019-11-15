@@ -63,7 +63,7 @@ public class TestAction extends AnAction {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
 
                 //@todo move string to constants
-                String oldFilepath = virtualFile.getPath(); 
+                String oldFilepath = virtualFile.getPath();
                 String newFilePath = oldFilepath.substring(oldFilepath.indexOf("/src/")).replaceAll("/src/.*?/", "src/Pyz/").replace("\\", "/");
 
                 byte[] fileContents = virtualFile.contentsToByteArray();
@@ -71,6 +71,7 @@ public class TestAction extends AnAction {
                 VirtualFile newFile = this.findFile(newFilePath);
                 if (newFile == null) {
                     newFile = this.findOrCreateFile(newFilePath, fileContents);
+                    this.navigateToFile(newFile);
                 } else {
                     this.navigateToFile(newFile);
                     return;
@@ -142,15 +143,15 @@ public class TestAction extends AnAction {
 
                                     String finalNamespaceElementText = finalNamespaceElement.getText();
                                     String className = ((PhpClassImpl) classElement).getName();
+                                    String fqn = oldBaseNamespaceElementText + finalNamespaceElementText + "\\" + className;
+                                    //@todo won't work with arbitrary namespaces
+                                    String parentClassAlias = "Spryker" + className;
 
-                                    PhpUseList newUseStatement = PhpPsiElementFactory.createUseStatement(this.project, oldBaseNamespaceElementText + finalNamespaceElementText + "\\" + className, "Spryker" + className);
-
+                                    PhpUseList newUseStatement = PhpPsiElementFactory.createUseStatement(this.project, fqn, parentClassAlias);
                                     WriteCommandAction.runWriteCommandAction(this.project, () -> {
                                         element.addBefore(newUseStatement, classElement);
                                     });
 
-                                    OptimizeImportsProcessor optimizeImportsProcessor = new OptimizeImportsProcessor(this.project, this.newPhpFile);
-                                    optimizeImportsProcessor.run();
                                 }
 
                                 /**
@@ -170,6 +171,7 @@ public class TestAction extends AnAction {
                                  */
 
                                 this.reformatCode(this.newPhpFile);
+                                this.organizeImports(this.newPhpFile);
                             }
                         }
                     }
@@ -208,6 +210,11 @@ public class TestAction extends AnAction {
     private void reformatCode(PsiFile psiFile) {
         ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(psiFile, false);
         reformatCodeProcessor.run();
+    }
+
+    private void organizeImports(PsiFile psiFile) {
+        OptimizeImportsProcessor optimizeImportsProcessor = new OptimizeImportsProcessor(this.project, psiFile);
+        optimizeImportsProcessor.run();
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
