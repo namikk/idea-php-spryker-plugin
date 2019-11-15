@@ -1,41 +1,53 @@
 package pav.sprykerFileCreator.action.testActions;
 
-import com.intellij.codeInsight.actions.OptimizeImportsAction;
 import com.intellij.codeInsight.actions.OptimizeImportsProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
-import com.intellij.ide.favoritesTreeView.ImportUsagesAction;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.MultiMap;
 import com.jetbrains.php.lang.documentation.phpdoc.psi.PhpDocComment;
-import com.jetbrains.php.lang.inspections.quickfix.PhpExchangeExtendsImplementsQuickFix;
-import com.jetbrains.php.lang.lexer.PhpTokenTypes;
-import com.jetbrains.php.lang.psi.PhpElementType;
 import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
-import com.jetbrains.php.lang.psi.elements.impl.*;
+import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
+import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 
 public class TestAction extends AnAction {
     private Project project;
     private MultiMap<String, PhpNamedElement> map;
     private PhpFile newPhpFile;
+    private HashMap<String, String> config = new HashMap<>();
+    private static final String OVERRIDE_CLASS_CONTENT = "OVERRIDE_CLASS_CONTENT";
+    private static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
 
     public TestAction() {
         super("Test Action");
+        this.initConfig();
+    }
+
+    private void initConfig() {
+        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "true");
+        this.config.put(TestAction.ALLOW_ANY_NAMESPACE, "false");
+    }
+
+    private void navigateToFile(VirtualFile file) {
+        OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(this.project, file);
+        fileDescriptor.navigate(true);
     }
 
     @Override
@@ -49,18 +61,20 @@ public class TestAction extends AnAction {
         if (filePath.contains("vendor/spryker")) {
             try {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
-                PhpFile phpFile = (PhpFile) psiFile;
 
-                //@todo make it work for other spryker namespaces (SprykerShop etc.)
                 //@todo move string to constants
-                String oldFilepath = virtualFile.getPath();
+                String oldFilepath = virtualFile.getPath(); 
                 String newFilePath = oldFilepath.substring(oldFilepath.indexOf("/src/")).replaceAll("/src/.*?/", "src/Pyz/").replace("\\", "/");
 
                 byte[] fileContents = virtualFile.contentsToByteArray();
-                VirtualFile newFile = this.findOrCreateFile(newFilePath, fileContents);
 
-                OpenFileDescriptor meh = new OpenFileDescriptor(this.project, newFile);
-                meh.navigate(true);
+                VirtualFile newFile = this.findFile(newFilePath);
+                if (newFile == null) {
+                    newFile = this.findOrCreateFile(newFilePath, fileContents);
+                } else {
+                    this.navigateToFile(newFile);
+                    return;
+                }
 
                 PsiFile newPsiFile = PsiManager.getInstance(this.project).findFile(newFile);
 
@@ -71,6 +85,7 @@ public class TestAction extends AnAction {
                     Collection<PhpNamedElement> elementCollection = map.get(key);
 
                     for (PhpNamedElement element : elementCollection) {
+                        //@todo is there a better way to do this?
                         if (element instanceof PhpNamespace) {
                             if (element.getFirstChild().getText().equals("namespace")) {
                                 PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
@@ -80,47 +95,48 @@ public class TestAction extends AnAction {
                                  */
                                 PsiElement baseNamespaceElement = element.getFirstChild().getNextSibling().getNextSibling();
 
-                                String oldBaseNamespaceElementText = baseNamespaceElement.getText();
-                                String newBaseNamespaceElementText = oldBaseNamespaceElementText.substring(0, oldBaseNamespaceElementText.length() - 1).replace("Spryker", "Pyz");
-
-                                PsiElement newNamespaceElement = PhpPsiElementFactory.createNamespaceReference(this.project, newBaseNamespaceElementText, false);
+                                String newNamespaceElementText = this.getNewNamespace(baseNamespaceElement);
+                                PsiElement newNamespaceElement = PhpPsiElementFactory.createNamespaceReference(this.project, newNamespaceElementText, false);
 
                                 WriteCommandAction.runWriteCommandAction(this.project, () -> {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
-                                //@todo config: clean up parent class content vs override all parent classes and call parent:: methods
-
-                                /**
-                                 * Delete class content
-                                 */
-                                WriteCommandAction.runWriteCommandAction(this.project, () -> {
-                                    Collection<Field> classFields = ((PhpClassImpl) classElement).getFields();
-                                    for (Field classField: classFields) {
-                                        //@todo delete public const keywords as well
-                                        //@todo do NOT delete original file content ffs
-                                        classField.getPrevSibling().delete();
-                                        classField.delete();
-                                    }
-
-                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
-                                    for (Method classMethod: classMethods) {
-                                        PhpDocComment methodComment = classMethod.getDocComment();
-                                        if (methodComment != null) {
-                                            methodComment.delete();
+                                if (this.config.get(TestAction.OVERRIDE_CLASS_CONTENT).equals("true")) {
+                                    //@todo override all parent classes and call parent:: methods instead of parent method content
+                                } else {
+                                    /**
+                                     * Delete class content
+                                     */
+                                    WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                        Collection<Field> classFields = ((PhpClassImpl) classElement).getFields();
+                                        for (Field classField : classFields) {
+                                            //@todo delete public const keywords as well
+                                            //@todo do NOT delete original file content ffs
+                                            classField.getPrevSibling().delete();
+                                            classField.delete();
                                         }
-                                        classMethod.delete();
-                                    }
 
-                                    PhpDocComment classDocComment = ((PhpClassImpl) classElement).getDocComment();
-                                    if (classDocComment != null) {
-                                        classDocComment.delete();
-                                    }
-                                });
+                                        Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
+                                        for (Method classMethod : classMethods) {
+                                            PhpDocComment methodComment = classMethod.getDocComment();
+                                            if (methodComment != null) {
+                                                methodComment.delete();
+                                            }
+                                            classMethod.delete();
+                                        }
+
+                                        PhpDocComment classDocComment = ((PhpClassImpl) classElement).getDocComment();
+                                        if (classDocComment != null) {
+                                            classDocComment.delete();
+                                        }
+                                    });
+                                }
 
                                 /**
                                  * Add use statement for overridden Spryker class
                                  */
+                                String oldBaseNamespaceElementText = baseNamespaceElement.getText();
                                 if (!oldBaseNamespaceElementText.contains("Pyz")) {
                                     PsiElement finalNamespaceElement = element.getLastChild().getPrevSibling().getPrevSibling().getPrevSibling();
 
@@ -150,11 +166,10 @@ public class TestAction extends AnAction {
                                 });
 
                                 /**
-                                 * @todo import missing interface(s)
+                                 * @todo import missing (facade) interface(s)
                                  */
 
-                                ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(this.newPhpFile, false);
-                                reformatCodeProcessor.run();
+                                this.reformatCode(this.newPhpFile);
                             }
                         }
                     }
@@ -170,6 +185,29 @@ public class TestAction extends AnAction {
             Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
             return;
         }
+    }
+
+    private String getNewNamespace(PsiElement baseNamespaceElement) {
+        String oldBaseNamespaceElementText = baseNamespaceElement.getText();
+        String newBaseNamespaceElementText;
+        if (this.config.get(TestAction.ALLOW_ANY_NAMESPACE).equals("true")) {
+            //@todo alternative: replace first part to make it work with any namespace (it should be namespace anyways)
+            newBaseNamespaceElementText = oldBaseNamespaceElementText;
+        } else {
+            newBaseNamespaceElementText = oldBaseNamespaceElementText
+                    .substring(0, oldBaseNamespaceElementText.length() - 1)
+                    .replace("SprykerMiddleware", "Pyz")
+                    .replace("SprykerShop", "Pyz")
+                    .replace("SprykerEco", "Pyz")
+                    .replace("Spryker", "Pyz");
+        }
+
+        return newBaseNamespaceElementText;
+    }
+
+    private void reformatCode(PsiFile psiFile) {
+        ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(psiFile, false);
+        reformatCodeProcessor.run();
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
@@ -194,14 +232,13 @@ public class TestAction extends AnAction {
         return this.getFirstElementOfType(elementName, this.newPhpFile.getOriginalElement());
     }
 
-    public VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
+    private VirtualFile findFile(String fileRelativePath) {
         VirtualFile projectRootFile = this.project.getBaseDir();
-        VirtualFile existingFile = projectRootFile.findFileByRelativePath(fileRelativePath);
-        if (existingFile != null) {
-            return existingFile;
-        }
+        return projectRootFile.findFileByRelativePath(fileRelativePath);
+    }
 
-        VirtualFile latestFolder = projectRootFile;
+    private VirtualFile createFile(String fileRelativePath, byte[] contents) throws IOException {
+        VirtualFile latestFolder = this.project.getBaseDir();
 
         String[] folderPathParts = fileRelativePath.split("/");
 
@@ -233,6 +270,14 @@ public class TestAction extends AnAction {
         newFile.refresh(false, false);
 
         return newFile;
+    }
+
+    private VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
+        VirtualFile existingFile = this.findFile(fileRelativePath);
+        if (existingFile == null) {
+            return this.createFile(fileRelativePath, contents);
+        }
+        return existingFile;
     }
 
     @Override
