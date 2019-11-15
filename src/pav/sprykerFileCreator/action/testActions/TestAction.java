@@ -1,14 +1,16 @@
 package pav.sprykerFileCreator.action.testActions;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.codeInsight.actions.OptimizeImportsAction;
+import com.intellij.codeInsight.actions.OptimizeImportsProcessor;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.ide.favoritesTreeView.ImportUsagesAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -22,6 +24,7 @@ import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -86,6 +89,8 @@ public class TestAction extends AnAction {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
+                                //@todo config: clean up parent class content vs override all parent classes and call parent:: methods
+
                                 /**
                                  * Delete class content
                                  */
@@ -93,6 +98,7 @@ public class TestAction extends AnAction {
                                     Collection<Field> classFields = ((PhpClassImpl) classElement).getFields();
                                     for (Field classField: classFields) {
                                         //@todo delete public const keywords as well
+                                        //@todo do NOT delete original file content ffs
                                         classField.getPrevSibling().delete();
                                         classField.delete();
                                     }
@@ -123,12 +129,12 @@ public class TestAction extends AnAction {
 
                                     PhpUseList newUseStatement = PhpPsiElementFactory.createUseStatement(this.project, oldBaseNamespaceElementText + finalNamespaceElementText + "\\" + className, "Spryker" + className);
 
-                                    this.removeOldUseStatements();
-
-                                    //@todo place new use statement in the correct spot (after namespace, and before class docblock)
                                     WriteCommandAction.runWriteCommandAction(this.project, () -> {
                                         element.addBefore(newUseStatement, classElement);
                                     });
+
+                                    OptimizeImportsProcessor optimizeImportsProcessor = new OptimizeImportsProcessor(this.project, this.newPhpFile);
+                                    optimizeImportsProcessor.run();
                                 }
 
                                 /**
@@ -143,12 +149,17 @@ public class TestAction extends AnAction {
                                     extendsListElement.replace(extendsElement);
                                 });
 
+                                /**
+                                 * @todo import missing interface(s)
+                                 */
+
+                                ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(this.newPhpFile, false);
+                                reformatCodeProcessor.run();
                             }
                         }
                     }
                 }
 
-                //@todo modify class content to remove all old code?
                 //@todo focus new file in project tree
                 newPhpFile.getVirtualFile().refresh(false, false);
             } catch (IOException exception) {
@@ -159,16 +170,6 @@ public class TestAction extends AnAction {
             Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
             return;
         }
-    }
-
-    private void removeOldUseStatements() {
-        WriteCommandAction.runWriteCommandAction(this.project, () -> {
-            PsiElement nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
-            while (nextUseListElement != null) {
-                nextUseListElement.delete();
-                nextUseListElement = this.getFirstElementOfType(PhpUseListImpl.class.getName());
-            }
-        });
     }
 
     private PsiElement getFirstElementOfType(String elementTypeName, PsiElement parentElement) {
