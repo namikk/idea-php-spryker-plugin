@@ -42,7 +42,7 @@ public class TestAction extends AnAction {
     }
 
     private void initConfig() {
-        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "false");
+        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "true");
         this.config.put(TestAction.ALLOW_ANY_NAMESPACE, "false");
     }
 
@@ -105,6 +105,7 @@ public class TestAction extends AnAction {
                                 });
 
                                 if (this.config.get(TestAction.OVERRIDE_CLASS_CONTENT).equals("true")) {
+                                    /*
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
                                         //@todo override all parent classes and call parent:: methods instead of parent method content
@@ -124,6 +125,7 @@ public class TestAction extends AnAction {
 
                                         PhpDocComment methodComment = classMethod.getDocComment();
                                     }
+                                     */
                                 } else {
                                     /**
                                      * Delete class content
@@ -264,6 +266,7 @@ public class TestAction extends AnAction {
     }
 
     private VirtualFile createFile(String fileRelativePath, byte[] contents) throws IOException {
+        fileRelativePath = "project/" + fileRelativePath;
         VirtualFile latestFolder = this.project.getBaseDir();
 
         String[] folderPathParts = fileRelativePath.split("/");
