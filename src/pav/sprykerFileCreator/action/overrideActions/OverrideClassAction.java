@@ -1,4 +1,4 @@
-package pav.sprykerFileCreator.action.testActions;
+package pav.sprykerFileCreator.action.overrideActions;
 
 import com.intellij.codeInsight.actions.OptimizeImportsProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Collection;
 
-public class TestAction extends AnAction {
+public class OverrideClassAction extends AnAction {
     private Project project;
     private MultiMap<String, PhpNamedElement> map;
     private PhpFile newPhpFile;
@@ -35,15 +35,15 @@ public class TestAction extends AnAction {
     private static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
     private PropertiesComponent properties;
 
-    public TestAction() {
-        super("Test Action");
+    public OverrideClassAction() {
+        super("Override Spryker Class Action");
     }
 
     private void initConfig() {
         this.properties = PropertiesComponent.getInstance(this.project);
 
-        PropertiesComponent.getInstance(this.project).setValue(TestAction.OVERRIDE_CLASS_CONTENT, true);
-        PropertiesComponent.getInstance(this.project).setValue(TestAction.ALLOW_ANY_NAMESPACE, false);
+        PropertiesComponent.getInstance(this.project).setValue(OverrideClassAction.OVERRIDE_CLASS_CONTENT, true);
+        PropertiesComponent.getInstance(this.project).setValue(OverrideClassAction.ALLOW_ANY_NAMESPACE, false);
     }
 
     private void navigateToFile(VirtualFile file) {
@@ -107,7 +107,7 @@ public class TestAction extends AnAction {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
-                                if (this.properties.isTrueValue(TestAction.OVERRIDE_CLASS_CONTENT)) {
+                                if (this.properties.isTrueValue(OverrideClassAction.OVERRIDE_CLASS_CONTENT)) {
                                     /*
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
@@ -216,7 +216,7 @@ public class TestAction extends AnAction {
     private String getNewNamespace(PsiElement baseNamespaceElement) {
         String oldBaseNamespaceElementText = baseNamespaceElement.getText();
         String newBaseNamespaceElementText;
-        if (this.properties.isTrueValue(TestAction.ALLOW_ANY_NAMESPACE)) {
+        if (this.properties.isTrueValue(OverrideClassAction.ALLOW_ANY_NAMESPACE)) {
             //@todo alternative: replace first part to make it work with any namespace (it should be namespace anyways)
             newBaseNamespaceElementText = oldBaseNamespaceElementText;
         } else {

@@ -59,7 +59,7 @@
 
   <actions>
 
-    <action id="TestPlugin.TestMenuAction" text="Override Spryker Class" description="Test menu" class="pav.sprykerFileCreator.action.testActions.TestAction">
+    <action id="SprykerOverrideClassAction" text="Override Spryker Class" description="Override Spryker Class" class="pav.sprykerFileCreator.action.overrideActions.OverrideClassAction">
       <add-to-group group-id="EditMenu" anchor="last" />
     </action>
 
