@@ -37,7 +37,6 @@ public class TestAction extends AnAction {
 
     public TestAction() {
         super("Test Action");
-        this.initConfig();
     }
 
     private void initConfig() {
@@ -280,6 +279,7 @@ public class TestAction extends AnAction {
             VirtualFile newFolderVirtualFile = latestFolder.findChild(newFolderName);
 
             if (newFolderVirtualFile == null) {
+                //@todo fix write-action only exception: call this method from within a WriteCommandAction.runWriteCommandAction
                 newFolderVirtualFile = latestFolder.createChildDirectory(this.project, newFolderName);
             } else {
                 if (!newFolderVirtualFile.isDirectory()) {
