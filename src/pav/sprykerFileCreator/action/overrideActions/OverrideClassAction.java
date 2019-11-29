@@ -2,7 +2,6 @@ package pav.sprykerFileCreator.action.overrideActions;
 
 import com.intellij.codeInsight.actions.OptimizeImportsProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -11,7 +10,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -25,16 +23,16 @@ import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
 import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
 import pav.sprykerFileCreator.config.Settings;
+import pav.sprykerFileCreator.model.ModelFactory;
+import pav.sprykerFileCreator.model.helper.FilesystemHelper;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 
 public class OverrideClassAction extends AnAction {
     private Project project;
     private PhpFile newPhpFile;
-    private static final String OVERRIDE_CLASS_CONTENT = "OVERRIDE_CLASS_CONTENT";
-    private static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
+    private ModelFactory modelFactory;
 
     public OverrideClassAction() {
         super("Override Spryker Class Action");
@@ -48,6 +46,7 @@ public class OverrideClassAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         this.project = anActionEvent.getProject();
+        FilesystemHelper filesystemHelper = getModelFactory().createFilesystemHelper(this.project);
 
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
@@ -65,9 +64,9 @@ public class OverrideClassAction extends AnAction {
 
                 byte[] fileContents = virtualFile.contentsToByteArray();
 
-                VirtualFile newFile = this.findFile(newFilePath);
+                VirtualFile newFile = filesystemHelper.findFile(newFilePath);
                 if (newFile == null) {
-                    newFile = this.findOrCreateFile(newFilePath, fileContents);
+                    newFile = filesystemHelper.findOrCreateFile(newFilePath, fileContents);
                     this.navigateToFile(newFile);
                 } else {
                     this.navigateToFile(newFile);
@@ -256,68 +255,6 @@ public class OverrideClassAction extends AnAction {
         return this.getFirstElementOfType(elementName, this.newPhpFile.getOriginalElement());
     }
 
-    private VirtualFile findFile(String fileRelativePath) {
-        VirtualFile projectRootFile = this.project.getBaseDir();
-        return projectRootFile.findFileByRelativePath(fileRelativePath);
-    }
-
-    private VirtualFile createFile(String fileRelativePath, byte[] contents) throws IOException {
-        fileRelativePath = getSettings().projectRoot + "/" + fileRelativePath;
-        fileRelativePath = FileUtil.toSystemIndependentName(fileRelativePath);
-
-        String[] filePathParts = fileRelativePath.split("/");
-
-        String[] folderPathParts = Arrays.copyOf(filePathParts, filePathParts.length - 1);
-
-        VirtualFile parentFolder = this.findOrCreateFolderFromRelativePath(folderPathParts);
-
-        final VirtualFile newFile;
-        try {
-            String filename = filePathParts[filePathParts.length - 1];
-            //@todo fix write-action only exception
-            newFile = parentFolder.findOrCreateChildData(this.project, filename);
-        } catch (IOException exception) {
-            String msg = exception.getMessage();
-            return null;
-        }
-        newFile.setBinaryContent(contents);
-        newFile.refresh(false, false);
-
-        return newFile;
-    }
-
-    private VirtualFile findOrCreateFolderFromRelativePath(String[] folderPathParts) throws IOException {
-        VirtualFile parentFolder = this.project.getBaseDir();
-
-        for (int i = 0; i < folderPathParts.length; i++) {
-            String newFolderName = folderPathParts[i];
-            if (newFolderName.equals("")) {
-                continue;
-            }
-            VirtualFile newFolderVirtualFile = parentFolder.findChild(newFolderName);
-
-            if (newFolderVirtualFile == null) {
-                //@todo fix write-action only exception
-                newFolderVirtualFile = parentFolder.createChildDirectory(this.project, newFolderName);
-            } else {
-                if (!newFolderVirtualFile.isDirectory()) {
-                    throw new IOException("One of the folders in new folder path is an existing file.");
-                }
-            }
-
-            parentFolder = newFolderVirtualFile;
-        }
-
-        return parentFolder;
-    }
-
-    private VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
-        VirtualFile existingFile = this.findFile(fileRelativePath);
-        if (existingFile == null) {
-            return this.createFile(fileRelativePath, contents);
-        }
-        return existingFile;
-    }
 
     @Override
     public void update(@NotNull AnActionEvent anActionEvent) {
@@ -332,6 +269,14 @@ public class OverrideClassAction extends AnAction {
                     getSettings().allowAnyNamespace || filePath.contains("vendor/spryker")
             );
         }
+    }
+
+    private ModelFactory getModelFactory() {
+        if (this.modelFactory == null) {
+            this.modelFactory = ModelFactory.getInstance();
+        }
+
+        return this.modelFactory;
     }
 
     private Settings getSettings() {

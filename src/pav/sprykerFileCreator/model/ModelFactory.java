@@ -8,6 +8,7 @@ import pav.sprykerFileCreator.model.definition.DefinitionProviderInterface;
 import pav.sprykerFileCreator.model.finder.ClassFinder;
 import pav.sprykerFileCreator.model.finder.ClassFinderInterface;
 import pav.sprykerFileCreator.model.generator.*;
+import pav.sprykerFileCreator.model.helper.FilesystemHelper;
 import pav.sprykerFileCreator.model.manager.ClassManager;
 import pav.sprykerFileCreator.model.manager.ClassManagerInterface;
 import pav.sprykerFileCreator.model.matcher.ClassTypeMatcher;
@@ -103,4 +104,11 @@ public class ModelFactory {
         return SprykerPluginConfig.getInstance(project, projectName);
     }
 
+    public FilesystemHelper createFilesystemHelper(Project project) {
+        return new FilesystemHelper(project);
+    }
+
+    public static ModelFactory getInstance() {
+        return new ModelFactory();
+    }
 }
