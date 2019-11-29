@@ -11,6 +11,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -23,8 +24,10 @@ import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
 import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
+import pav.sprykerFileCreator.config.Settings;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class OverrideClassAction extends AnAction {
@@ -269,32 +272,20 @@ public class OverrideClassAction extends AnAction {
     }
 
     private VirtualFile createFile(String fileRelativePath, byte[] contents) throws IOException {
-//        fileRelativePath = "project/" + fileRelativePath;
-        VirtualFile latestFolder = this.project.getBaseDir();
+        fileRelativePath = getSettings().projectRoot + "/" + fileRelativePath;
+        fileRelativePath = FileUtil.toSystemIndependentName(fileRelativePath);
 
-        String[] folderPathParts = fileRelativePath.split("/");
+        String[] filePathParts = fileRelativePath.split("/");
 
-        for (int i = 0; i < folderPathParts.length - 1; i++) {
-            String newFolderName = folderPathParts[i];
-            VirtualFile newFolderVirtualFile = latestFolder.findChild(newFolderName);
+        String[] folderPathParts = Arrays.copyOf(filePathParts, filePathParts.length - 1);
 
-            if (newFolderVirtualFile == null) {
-                //@todo fix write-action only exception: call this method from within a WriteCommandAction.runWriteCommandAction
-                newFolderVirtualFile = latestFolder.createChildDirectory(this.project, newFolderName);
-            } else {
-                if (!newFolderVirtualFile.isDirectory()) {
-                    throw new IOException("One of the folders in new folder path is an existing file.");
-                }
-            }
+        VirtualFile parentFolder = this.findOrCreateFolderFromRelativePath(folderPathParts);
 
-            latestFolder = newFolderVirtualFile;
-        }
-
-        String filename = folderPathParts[folderPathParts.length - 1];
-
-        VirtualFile newFile;
+        final VirtualFile newFile;
         try {
-            newFile = latestFolder.findOrCreateChildData(this.project, filename);
+            String filename = filePathParts[filePathParts.length - 1];
+            //@todo fix write-action only exception
+            newFile = parentFolder.findOrCreateChildData(this.project, filename);
         } catch (IOException exception) {
             String msg = exception.getMessage();
             return null;
@@ -303,6 +294,31 @@ public class OverrideClassAction extends AnAction {
         newFile.refresh(false, false);
 
         return newFile;
+    }
+
+    private VirtualFile findOrCreateFolderFromRelativePath(String[] folderPathParts) throws IOException {
+        VirtualFile parentFolder = this.project.getBaseDir();
+
+        for (int i = 0; i < folderPathParts.length; i++) {
+            String newFolderName = folderPathParts[i];
+            if (newFolderName.equals("")) {
+                continue;
+            }
+            VirtualFile newFolderVirtualFile = parentFolder.findChild(newFolderName);
+
+            if (newFolderVirtualFile == null) {
+                //@todo fix write-action only exception
+                newFolderVirtualFile = parentFolder.createChildDirectory(this.project, newFolderName);
+            } else {
+                if (!newFolderVirtualFile.isDirectory()) {
+                    throw new IOException("One of the folders in new folder path is an existing file.");
+                }
+            }
+
+            parentFolder = newFolderVirtualFile;
+        }
+
+        return parentFolder;
     }
 
     private VirtualFile findOrCreateFile(String fileRelativePath, byte[] contents) throws IOException {
@@ -317,7 +333,14 @@ public class OverrideClassAction extends AnAction {
     public void update(@NotNull AnActionEvent anActionEvent) {
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+        if (virtualFile == null) {
+            return;
+        }
         String filePath = virtualFile.getPath();
         anActionEvent.getPresentation().setEnabledAndVisible(filePath.contains("vendor/spryker"));
+    }
+
+    private Settings getSettings() {
+        return Settings.getInstance(project);
     }
 }
