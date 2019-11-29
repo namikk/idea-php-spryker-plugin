@@ -26,7 +26,7 @@ public class Settings implements PersistentStateComponent<Settings> {
 
     public boolean pluginEnabled = true;
     public String projectRoot = Settings.DEFAULT_PROJECT_ROOT;
-    public boolean overrideClassContent = false;
+    public boolean deleteClassContent = false;
     public boolean allowAnyNamespace = false;
 
     public static Settings getInstance(Project project) {
