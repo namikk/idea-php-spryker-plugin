@@ -15,12 +15,7 @@ import org.jetbrains.annotations.Nullable;
         }
 )
 public class Settings implements PersistentStateComponent<Settings> {
-    public static final String OVERRIDE_CLASS_CONTENT = "OVERRIDE_CLASS_CONTENT";
-    public static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
-
-    public static String PROJECT_ROOT = "PROJECT_ROOT";
-    public static String test = "persistent config test";
-
+    public static final String DEFAULT_PROJECT_ROOT = "/";
     public static final String[] DEFAULT_SPRYKER_NAMESPACES = new String[]{
             "Spryker",
             "SprykerMiddleware",
@@ -30,6 +25,9 @@ public class Settings implements PersistentStateComponent<Settings> {
     };
 
     public boolean pluginEnabled = true;
+    public String projectRoot = Settings.DEFAULT_PROJECT_ROOT;
+    public boolean overrideClassContent = false;
+    public boolean allowAnyNamespace = false;
 
     public static Settings getInstance(Project project) {
         return ServiceManager.getService(project, Settings.class);

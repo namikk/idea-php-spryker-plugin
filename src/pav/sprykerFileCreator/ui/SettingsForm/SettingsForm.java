@@ -37,10 +37,10 @@ public class SettingsForm implements Configurable {
 
     //@todo move to helper class
     public static void openUrl(String url) {
-        if(java.awt.Desktop.isDesktopSupported() ) {
+        if (java.awt.Desktop.isDesktopSupported()) {
             java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
 
-            if(desktop.isSupported(java.awt.Desktop.Action.BROWSE) ) {
+            if (desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
                 try {
                     java.net.URI uri = new java.net.URI(url);
                     desktop.browse(uri);
@@ -68,8 +68,7 @@ public class SettingsForm implements Configurable {
 
     @Override
     public boolean isModified() {
-        return false;
-//        return !pluginEnabled.isSelected() == getSettings().pluginEnabled;
+        return !pluginEnabled.isSelected() == getSettings().pluginEnabled;
     }
 
     @Override

@@ -48,6 +48,7 @@
     <!--<projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="Config" />-->
 
     <projectService serviceInterface="pav.sprykerFileCreator.config.SprykerPluginConfig" serviceImplementation="pav.sprykerFileCreator.config.SprykerPluginConfig"/>
+    <projectService serviceImplementation="pav.sprykerFileCreator.config.Settings"/>
 
     <intentionAction>
       <className>pav.sprykerFileCreator.action.SprykerUpdateClassDocBlockIntention</className>
