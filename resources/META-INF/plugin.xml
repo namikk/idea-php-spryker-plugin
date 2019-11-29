@@ -32,12 +32,20 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectConfigurable instance="pav.sprykerFileCreator.ui.SettingsForm.SettingsForm"
+                           displayName="Spryker"
+                           id="Spryker.SettingsForm"
+                           parentId="reference.webide.settings.project.settings.php"
+                           nonDefaultProject="true"
+    />
+
+    <projectConfigurable instance="pav.sprykerFileCreator.ui.ClassOverrideForm.ClassOverrideForm"
+                           displayName="Class Override"
+                           id="Spryker.ClassOverrideForm"
+                           parentId="Spryker.SettingsForm"
+                           nonDefaultProject="true"
+    />
     <!--<projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="Config" />-->
-<!--    @todo figure this out -->
-<!--    <appStarter implementation="pav.sprykerFileCreator.action.testActions.TestAction" />-->
-<!--    <applicationConfigurable implementation="com.intellij.openapi.options.ConfigurableEP" />-->
-<!--    <projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="pav.sprykerFileCreator.config.SprykerPluginConfig" />-->
-<!--    <extensionPoint name="testPoint" defaultExtensionNs="testNs"/>-->
 
     <projectService serviceInterface="pav.sprykerFileCreator.config.SprykerPluginConfig" serviceImplementation="pav.sprykerFileCreator.config.SprykerPluginConfig"/>
 
