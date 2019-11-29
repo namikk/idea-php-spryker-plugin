@@ -32,21 +32,12 @@ import java.util.Collection;
 
 public class OverrideClassAction extends AnAction {
     private Project project;
-    private MultiMap<String, PhpNamedElement> map;
     private PhpFile newPhpFile;
     private static final String OVERRIDE_CLASS_CONTENT = "OVERRIDE_CLASS_CONTENT";
     private static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
-    private PropertiesComponent properties;
 
     public OverrideClassAction() {
         super("Override Spryker Class Action");
-    }
-
-    private void initConfig() {
-        this.properties = PropertiesComponent.getInstance(this.project);
-
-        PropertiesComponent.getInstance(this.project).setValue(OverrideClassAction.OVERRIDE_CLASS_CONTENT, true);
-        PropertiesComponent.getInstance(this.project).setValue(OverrideClassAction.ALLOW_ANY_NAMESPACE, false);
     }
 
     private void navigateToFile(VirtualFile file) {
@@ -57,7 +48,6 @@ public class OverrideClassAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         this.project = anActionEvent.getProject();
-        this.initConfig();
 
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
@@ -87,7 +77,7 @@ public class OverrideClassAction extends AnAction {
                 PsiFile newPsiFile = PsiManager.getInstance(this.project).findFile(newFile);
 
                 this.newPhpFile = (PhpFile) newPsiFile;
-                this.map = this.newPhpFile.getTopLevelDefs();
+                MultiMap<String, PhpNamedElement> map = this.newPhpFile.getTopLevelDefs();
 
                 for (String key : map.keySet()) {
                     Collection<PhpNamedElement> elementCollection = map.get(key);
@@ -110,7 +100,7 @@ public class OverrideClassAction extends AnAction {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
-                                if (this.properties.isTrueValue(OverrideClassAction.OVERRIDE_CLASS_CONTENT)) {
+                                if (getSettings().overrideClassContent) {
                                     /*
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
@@ -219,7 +209,7 @@ public class OverrideClassAction extends AnAction {
     private String getNewNamespace(PsiElement baseNamespaceElement) {
         String oldBaseNamespaceElementText = baseNamespaceElement.getText();
         String newBaseNamespaceElementText;
-        if (this.properties.isTrueValue(OverrideClassAction.ALLOW_ANY_NAMESPACE)) {
+        if (getSettings().allowAnyNamespace) {
             //@todo alternative: replace first part to make it work with any namespace (it should be namespace anyways)
             newBaseNamespaceElementText = oldBaseNamespaceElementText;
         } else {
