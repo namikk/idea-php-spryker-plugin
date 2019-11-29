@@ -2,6 +2,7 @@ package pav.sprykerFileCreator.action.testActions;
 
 import com.intellij.codeInsight.actions.OptimizeImportsProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -20,21 +21,19 @@ import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
-import com.jetbrains.php.lang.psi.elements.impl.MethodImpl;
 import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 
 public class TestAction extends AnAction {
     private Project project;
     private MultiMap<String, PhpNamedElement> map;
     private PhpFile newPhpFile;
-    private HashMap<String, String> config = new HashMap<>();
     private static final String OVERRIDE_CLASS_CONTENT = "OVERRIDE_CLASS_CONTENT";
     private static final String ALLOW_ANY_NAMESPACE = "ALLOW_ANY_NAMESPACE";
+    private PropertiesComponent properties;
 
     public TestAction() {
         super("Test Action");
@@ -42,8 +41,10 @@ public class TestAction extends AnAction {
     }
 
     private void initConfig() {
-        this.config.put(TestAction.OVERRIDE_CLASS_CONTENT, "true");
-        this.config.put(TestAction.ALLOW_ANY_NAMESPACE, "false");
+        this.properties = PropertiesComponent.getInstance(this.project);
+
+        PropertiesComponent.getInstance(this.project).setValue(TestAction.OVERRIDE_CLASS_CONTENT, true);
+        PropertiesComponent.getInstance(this.project).setValue(TestAction.ALLOW_ANY_NAMESPACE, false);
     }
 
     private void navigateToFile(VirtualFile file) {
@@ -54,8 +55,11 @@ public class TestAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         this.project = anActionEvent.getProject();
+        this.initConfig();
+
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+
 
         String filePath = virtualFile.getPath();
         //@todo improve path checking?
@@ -104,7 +108,7 @@ public class TestAction extends AnAction {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
-                                if (this.config.get(TestAction.OVERRIDE_CLASS_CONTENT).equals("true")) {
+                                if (this.properties.isTrueValue(TestAction.OVERRIDE_CLASS_CONTENT)) {
                                     /*
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
@@ -213,7 +217,7 @@ public class TestAction extends AnAction {
     private String getNewNamespace(PsiElement baseNamespaceElement) {
         String oldBaseNamespaceElementText = baseNamespaceElement.getText();
         String newBaseNamespaceElementText;
-        if (this.config.get(TestAction.ALLOW_ANY_NAMESPACE).equals("true")) {
+        if (this.properties.isTrueValue(TestAction.ALLOW_ANY_NAMESPACE)) {
             //@todo alternative: replace first part to make it work with any namespace (it should be namespace anyways)
             newBaseNamespaceElementText = oldBaseNamespaceElementText;
         } else {
@@ -266,7 +270,7 @@ public class TestAction extends AnAction {
     }
 
     private VirtualFile createFile(String fileRelativePath, byte[] contents) throws IOException {
-        fileRelativePath = "project/" + fileRelativePath;
+//        fileRelativePath = "project/" + fileRelativePath;
         VirtualFile latestFolder = this.project.getBaseDir();
 
         String[] folderPathParts = fileRelativePath.split("/");
