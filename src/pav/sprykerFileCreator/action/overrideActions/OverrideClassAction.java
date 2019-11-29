@@ -255,9 +255,9 @@ public class OverrideClassAction extends AnAction {
         return this.getFirstElementOfType(elementName, this.newPhpFile.getOriginalElement());
     }
 
-
     @Override
     public void update(@NotNull AnActionEvent anActionEvent) {
+        this.project = anActionEvent.getProject();
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
 
