@@ -333,11 +333,15 @@ public class OverrideClassAction extends AnAction {
     public void update(@NotNull AnActionEvent anActionEvent) {
         DataContext context = anActionEvent.getDataContext();
         VirtualFile virtualFile = context.getData(CommonDataKeys.VIRTUAL_FILE);
+
         if (virtualFile == null) {
-            return;
+            anActionEvent.getPresentation().setEnabledAndVisible(false);
+        } else {
+            String filePath = virtualFile.getPath();
+            anActionEvent.getPresentation().setEnabledAndVisible(
+                    getSettings().allowAnyNamespace || filePath.contains("vendor/spryker")
+            );
         }
-        String filePath = virtualFile.getPath();
-        anActionEvent.getPresentation().setEnabledAndVisible(filePath.contains("vendor/spryker"));
     }
 
     private Settings getSettings() {
