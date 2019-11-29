@@ -33,6 +33,12 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!--<projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="Config" />-->
+<!--    @todo figure this out -->
+<!--    <appStarter implementation="pav.sprykerFileCreator.action.testActions.TestAction" />-->
+<!--    <applicationConfigurable implementation="com.intellij.openapi.options.ConfigurableEP" />-->
+<!--    <projectConfigurable groupId="tools" displayName="Spryker Plugin" id="preferences.Config" instance="pav.sprykerFileCreator.config.SprykerPluginConfig" />-->
+<!--    <extensionPoint name="testPoint" defaultExtensionNs="testNs"/>-->
+
     <projectService serviceInterface="pav.sprykerFileCreator.config.SprykerPluginConfig" serviceImplementation="pav.sprykerFileCreator.config.SprykerPluginConfig"/>
 
     <intentionAction>
@@ -48,10 +54,6 @@
     <action id="TestPlugin.TestMenuAction" text="Override Spryker Class" description="Test menu" class="pav.sprykerFileCreator.action.testActions.TestAction">
       <add-to-group group-id="EditMenu" anchor="last" />
     </action>
-<!--    <action id="TestPlugin.CreateFileAction" class="pav.sprykerFileCreator.action.testActions.CreateFileAction" text="Create File Action" description="Create file action">-->
-<!--      <add-to-group group-id="CodeMenu" anchor="last"/>-->
-<!--      <keyboard-shortcut keymap="$default" first-keystroke="ctrl meta O"/>-->
-<!--    </action>-->
 
     <action id="SprykerCreateYvesController" class="pav.sprykerFileCreator.action.newGroup.YvesControllerAction"
             text="Create Yves Controller" description="Create Yves Controller">
