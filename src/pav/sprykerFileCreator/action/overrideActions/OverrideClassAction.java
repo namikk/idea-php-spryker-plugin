@@ -54,7 +54,7 @@ public class OverrideClassAction extends AnAction {
 
         String filePath = virtualFile.getPath();
         //@todo improve path checking?
-        if (filePath.contains("vendor/spryker")) {
+        if (filePath.contains("vendor")) {
             try {
                 PsiFile psiFile = context.getData(CommonDataKeys.PSI_FILE);
 
@@ -88,10 +88,9 @@ public class OverrideClassAction extends AnAction {
                                 PsiElement classElement = this.getFirstElementOfType(PhpClassImpl.class.getName());
 
                                 /**
-                                 * Replace Spryker namespace with Pyz
+                                 * Replace namespace with Pyz
                                  */
                                 PsiElement baseNamespaceElement = element.getFirstChild().getNextSibling().getNextSibling();
-
                                 String newNamespaceElementText = this.getNewNamespace(baseNamespaceElement);
                                 PsiElement newNamespaceElement = PhpPsiElementFactory.createNamespaceReference(this.project, newNamespaceElementText, false);
 
@@ -100,28 +99,6 @@ public class OverrideClassAction extends AnAction {
                                 });
 
                                 if (getSettings().overrideClassContent) {
-                                    /*
-                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
-                                    for (Method classMethod : classMethods) {
-                                        //@todo override all parent classes and call parent:: methods instead of parent method content
-                                        String methodText = classMethod.getText();
-                                        String methodName = classMethod.getName();
-                                        Parameter[] methodParameters =  classMethod.getParameters();
-                                        PsiElement methodBody = classMethod.getLastChild();
-
-
-                                        //@todo moe logic to separate function
-//                                        MethodImpl
-
-//                                        methodBody.
-                                        PhpReturn returnElement = PhpPsiElementFactory.createReturnStatement(this.project, "true");
-                                        PhpPsiElementFactory.createFromText(this.project, PsiElement, "{");
-
-
-                                        PhpDocComment methodComment = classMethod.getDocComment();
-                                    }
-                                     */
-                                } else {
                                     /**
                                      * Delete class content
                                      */
@@ -148,6 +125,28 @@ public class OverrideClassAction extends AnAction {
                                             classDocComment.delete();
                                         }
                                     });
+                                } else {
+                                    /*
+                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
+                                    for (Method classMethod : classMethods) {
+                                        //@todo override all parent classes and call parent:: methods instead of parent method content
+                                        String methodText = classMethod.getText();
+                                        String methodName = classMethod.getName();
+                                        Parameter[] methodParameters =  classMethod.getParameters();
+                                        PsiElement methodBody = classMethod.getLastChild();
+
+
+                                        //@todo moe logic to separate function
+//                                        MethodImpl
+
+//                                        methodBody.
+                                        PhpReturn returnElement = PhpPsiElementFactory.createReturnStatement(this.project, "true");
+                                        PhpPsiElementFactory.createFromText(this.project, PsiElement, "{");
+
+
+                                        PhpDocComment methodComment = classMethod.getDocComment();
+                                    }
+                                     */
                                 }
 
                                 /**
@@ -200,27 +199,19 @@ public class OverrideClassAction extends AnAction {
                 return;
             }
         } else {
-            Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor/spryker ", "Info", Messages.getInformationIcon());
+            Messages.showMessageDialog(anActionEvent.getProject(), "Selected file is not in vendor folder ", "Info", Messages.getInformationIcon());
             return;
         }
     }
 
     private String getNewNamespace(PsiElement baseNamespaceElement) {
         String oldBaseNamespaceElementText = baseNamespaceElement.getText();
-        String newBaseNamespaceElementText;
-        if (getSettings().allowAnyNamespace) {
-            //@todo alternative: replace first part to make it work with any namespace (it should be namespace anyways)
-            newBaseNamespaceElementText = oldBaseNamespaceElementText;
-        } else {
-            newBaseNamespaceElementText = oldBaseNamespaceElementText
-                    .substring(0, oldBaseNamespaceElementText.length() - 1)
-                    .replace("SprykerMiddleware", "Pyz")
-                    .replace("SprykerShop", "Pyz")
-                    .replace("SprykerEco", "Pyz")
-                    .replace("Spryker", "Pyz");
-        }
 
-        return newBaseNamespaceElementText;
+        String[] namespacePartsSplit = oldBaseNamespaceElementText.split("\\\\");
+
+        namespacePartsSplit[0] = "Pyz";
+
+        return String.join("\\", namespacePartsSplit);
     }
 
     private void reformatCode(PsiFile psiFile) {
@@ -265,8 +256,9 @@ public class OverrideClassAction extends AnAction {
             anActionEvent.getPresentation().setEnabledAndVisible(false);
         } else {
             String filePath = virtualFile.getPath();
+
             anActionEvent.getPresentation().setEnabledAndVisible(
-                    getSettings().allowAnyNamespace || filePath.contains("vendor/spryker")
+                    (filePath.contains("vendor") && getSettings().allowAnyNamespace) || filePath.contains("vendor/spryker")
             );
         }
     }

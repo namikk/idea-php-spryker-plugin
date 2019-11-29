@@ -73,7 +73,7 @@
               <forms/>
             </constraints>
             <properties>
-              <text value="Override class content"/>
+              <text value="Override class content (unstable)"/>
             </properties>
           </component>
           <component id="2246c" class="javax.swing.JCheckBox" binding="toggleAllowAnyNamespace">
@@ -82,7 +82,7 @@
               <forms/>
             </constraints>
             <properties>
-              <text value="Allow overriding any namespace"/>
+              <text value="Allow overriding any namespace (unstable)"/>
             </properties>
           </component>
         </children>

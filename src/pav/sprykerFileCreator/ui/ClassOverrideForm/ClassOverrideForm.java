@@ -42,6 +42,8 @@ public class ClassOverrideForm implements Configurable {
     @Override
     public @Nullable JComponent createComponent() {
         directoryToApp.setText(getSettings().projectRoot);
+        toggleOverrideClassContent.setSelected(getSettings().overrideClassContent);
+        toggleAllowAnyNamespace.setSelected(getSettings().allowAnyNamespace);
         return panel1;
     }
 
