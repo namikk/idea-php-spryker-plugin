@@ -60,8 +60,16 @@
 
   <actions>
 
-    <action id="SprykerOverrideClassAction" text="Override Spryker Class" description="Override Spryker Class" class="pav.sprykerFileCreator.action.overrideActions.OverrideClassAction">
-      <add-to-group group-id="EditMenu" anchor="last" />
+    <action id="overrideActions.SprykerOverrideClassAction" text="Override Spryker Class"
+            description="Override Spryker Class"
+            class="pav.sprykerFileCreator.action.overrideActions.OverrideClassAction">
+      <add-to-group group-id="EditMenu" anchor="last"/>
+      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="FindUsages" anchor="before"/>
+    </action>
+
+    <action id="overrideActions.OverrideMethodAction" text="Override Spryker Method"
+            class="pav.sprykerFileCreator.action.overrideActions.OverrideMethodAction">
+      <add-to-group group-id="EditorPopupMenu" relative-to-action="FindUsages" anchor="before"/>
     </action>
 
     <action id="SprykerCreateYvesController" class="pav.sprykerFileCreator.action.newGroup.YvesControllerAction"
@@ -147,7 +155,6 @@
             text="Create Yves Bundle" description="Create Yves Bundle">
       <add-to-group group-id="NewGroup" anchor="last"/>
     </action>
-
   </actions>
 
 </idea-plugin>
