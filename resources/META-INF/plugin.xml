@@ -69,7 +69,7 @@
 
     <action id="overrideActions.OverrideMethodAction" text="Override Spryker Method"
             class="pav.sprykerFileCreator.action.overrideActions.OverrideMethodAction">
-      <add-to-group group-id="EditorPopupMenu" relative-to-action="FindUsages" anchor="before"/>
+      <add-to-group group-id="EditorPopupMenu" relative-to-action="EditorToggleColumnMode" anchor="after"/>
     </action>
 
     <action id="SprykerCreateYvesController" class="pav.sprykerFileCreator.action.newGroup.YvesControllerAction"
