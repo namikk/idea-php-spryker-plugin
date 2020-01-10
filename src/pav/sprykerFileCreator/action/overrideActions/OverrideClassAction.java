@@ -98,7 +98,7 @@ public class OverrideClassAction extends AnAction {
                                     baseNamespaceElement.replace(newNamespaceElement);
                                 });
 
-                                if (getSettings().deleteClassContent) {
+                                if (getSettings().excludeClassContent) {
                                     /**
                                      * Delete class content
                                      */

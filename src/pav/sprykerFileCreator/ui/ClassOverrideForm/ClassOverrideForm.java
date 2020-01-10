@@ -19,7 +19,7 @@ public class ClassOverrideForm implements Configurable {
     private JButton directoryToAppReset;
     private JLabel directoryToAppLabel;
     private TextFieldWithBrowseButton directoryToApp;
-    private JCheckBox toggleDeleteClassContent;
+    private JCheckBox toggleExcludeParentClassContent;
     private JCheckBox toggleAllowAnyNamespace;
 
     public ClassOverrideForm(@NotNull final Project project) {
@@ -42,7 +42,7 @@ public class ClassOverrideForm implements Configurable {
     @Override
     public @Nullable JComponent createComponent() {
         directoryToApp.setText(getSettings().projectRoot);
-        toggleDeleteClassContent.setSelected(getSettings().deleteClassContent);
+        toggleExcludeParentClassContent.setSelected(getSettings().excludeClassContent);
         toggleAllowAnyNamespace.setSelected(getSettings().allowAnyNamespace);
         return panel1;
     }
@@ -51,14 +51,14 @@ public class ClassOverrideForm implements Configurable {
     public boolean isModified() {
         return !directoryToApp.getText().equals(getSettings().projectRoot)
                 || !toggleAllowAnyNamespace.isSelected() == getSettings().allowAnyNamespace
-                || !toggleDeleteClassContent.isSelected() == getSettings().deleteClassContent;
+                || !toggleExcludeParentClassContent.isSelected() == getSettings().excludeClassContent;
     }
 
     @Override
     public void apply() throws ConfigurationException {
         getSettings().projectRoot = directoryToApp.getText();
         getSettings().allowAnyNamespace = toggleAllowAnyNamespace.isSelected();
-        getSettings().deleteClassContent = toggleDeleteClassContent.isSelected();
+        getSettings().excludeClassContent = toggleExcludeParentClassContent.isSelected();
     }
 
     private Settings getSettings() {

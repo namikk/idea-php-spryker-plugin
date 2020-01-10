@@ -67,13 +67,13 @@
               <text value="Override behaviour"/>
             </properties>
           </component>
-          <component id="b198c" class="javax.swing.JCheckBox" binding="toggleDeleteClassContent">
+          <component id="b198c" class="javax.swing.JCheckBox" binding="toggleExcludeParentClassContent">
             <constraints>
               <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
               <forms/>
             </constraints>
             <properties>
-              <text value="Delete parent class content (unstable)"/>
+              <text value="Exclude parent content on class override (unstable)"/>
             </properties>
           </component>
           <component id="2246c" class="javax.swing.JCheckBox" binding="toggleAllowAnyNamespace">
