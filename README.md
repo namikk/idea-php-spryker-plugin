@@ -1,13 +1,11 @@
-Spryker PhpStorm Plugin
+Spryker PhpStorm Plugin + Class Override Extension
 ========================
 
-Install Plugin
+Manually Install Plugin
 ------------------------
 
-* Navigate to `Preferences` > `Plugins` > `Browse Repositories`
-* Type `Spryker`
-* Click `Install`
-
+ 1. Download https://github.com/namikk/idea-php-spryker-plugin/blob/class-override/idea-php-spryker-plugin.jar
+ 2. Plugin must be manually installed as it's not available on the marketplace: Go to 'Preferences | Plugins', click on settings icon and then on 'Install Plugin fom Disk...'. Use the 'idea-php-spryker-plugin.jar' file that you just downloaded.
 
 Features
 ------------------------
@@ -39,3 +37,18 @@ To create a new bundle:
 - select `New and Create (Yves|Zed|Client) Bundle`
 
 ![Generate DocBlock](https://raw.githubusercontent.com/project-a/idea-php-spryker-plugin/master/docs/create_spryker_bundle.gif)
+
+## 4. Class Override
+
+Class override allows you to generate all necessary code segments for overriding a spryker class with a single action.
+1. Open spryker class, go to `Edit menu`, click on `Override Spryker Class`.
+2. Right click on spryker class file in `Project view`, click on `Override Spryker Class`.
+3. Right click on a a spryker `class method`, click on `Override Class Method` (not implemented).
+
+## 5. Config
+
+Plugin config can be found in 'Preferences | Languages & Frameworks | PHP | Spryker'.
+1. `Global - Enable plugin toggle`: Enable/disable plugin for current project. (Not implemented)
+2. `Class Override - Root directory`: Custom project root directory can be defined by entering it in the input field. (Note: Browse path button functionality not implemented)
+3. `Class Override - Exclude parent content on class override`: Newly created override classes will not contain any content from the parent class (methods, variables, etc.). By default all override methods call their respective parent methods. 
+4. `Class Override - Allow any namespace`: Enable class override functionality for non-spryker vendor files. (unstable)
