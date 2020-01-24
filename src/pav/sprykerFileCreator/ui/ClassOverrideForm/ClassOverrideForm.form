@@ -73,7 +73,7 @@
               <forms/>
             </constraints>
             <properties>
-              <text value="Exclude parent content on class override (unstable)"/>
+              <text value="Exclude parent content on class override"/>
             </properties>
           </component>
           <component id="2246c" class="javax.swing.JCheckBox" binding="toggleAllowAnyNamespace">

@@ -20,6 +20,7 @@ import com.jetbrains.php.lang.psi.PhpFile;
 import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.ExtendsListImpl;
+import com.jetbrains.php.lang.psi.elements.impl.ImplementsListImpl;
 import com.jetbrains.php.lang.psi.elements.impl.PhpClassImpl;
 import org.jetbrains.annotations.NotNull;
 import pav.sprykerFileCreator.config.Settings;
@@ -105,29 +106,18 @@ public class OverrideClassAction extends AnAction {
                                      * Delete class content
                                      */
                                     WriteCommandAction.runWriteCommandAction(this.project, () -> {
-                                        Collection<Field> classFields = ((PhpClassImpl) classElement).getFields();
-                                        for (Field classField : classFields) {
-                                            //@todo delete public const keywords as well
-                                            //@todo do NOT delete original file content ffs
-                                            classField.getPrevSibling().delete();
-                                            classField.delete();
-                                        }
+                                        PsiElement[] classChildElements = classElement.getChildren();
 
-                                        Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
-                                        for (Method classMethod : classMethods) {
-                                            PhpDocComment methodComment = classMethod.getDocComment();
-                                            if (methodComment != null) {
-                                                methodComment.delete();
+                                        for (PsiElement childElement : classChildElements) {
+                                            if (!(childElement instanceof ExtendsListImpl) && !(childElement instanceof ImplementsListImpl)) {
+                                                childElement.delete();
                                             }
-                                            classMethod.delete();
-                                        }
-
-                                        PhpDocComment classDocComment = ((PhpClassImpl) classElement).getDocComment();
-                                        if (classDocComment != null) {
-                                            classDocComment.delete();
                                         }
                                     });
                                 } else {
+                                    /**
+                                     * Add parent method calls
+                                     */
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
                                         String methodName = classMethod.getName();
@@ -145,6 +135,7 @@ public class OverrideClassAction extends AnAction {
 
                                         if (methodBody instanceof GroupStatement) {
                                             //@todo void methods should not use return keyword
+                                            //@todo class variables should be excluded
                                             String returnText = "return parent::" + methodName + "(" + allParamsText + ");";
                                             GroupStatement newMethodBody = PhpPsiElementFactory.createFromText(this.project, GroupStatement.class, "{\n" + returnText + "\n}");
 
@@ -192,7 +183,9 @@ public class OverrideClassAction extends AnAction {
                                 });
 
                                 /**
-                                 * @todo import missing (facade) interface(s)
+                                 * @todo complex override:
+                                 * override and import missing (facade) interface(s)
+                                 * override new class instance creation (BusinessFactory)
                                  */
 
                                 this.reformatCode(this.newPhpFile);
