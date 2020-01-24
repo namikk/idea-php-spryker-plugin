@@ -28,6 +28,8 @@ import pav.sprykerFileCreator.model.helper.FilesystemHelper;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class OverrideClassAction extends AnAction {
     private Project project;
@@ -126,27 +128,35 @@ public class OverrideClassAction extends AnAction {
                                         }
                                     });
                                 } else {
-                                    /*
                                     Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
                                     for (Method classMethod : classMethods) {
-                                        //@todo override all parent classes and call parent:: methods instead of parent method content
-                                        String methodText = classMethod.getText();
                                         String methodName = classMethod.getName();
-                                        Parameter[] methodParameters =  classMethod.getParameters();
+                                        Parameter[] methodParametersList = classMethod.getParameters();
+
+                                        Set<String> methodParametersTextList = new LinkedHashSet<>();
+
+                                        for (Parameter parameter : methodParametersList) {
+                                            methodParametersTextList.add(parameter.getNameIdentifier().getText());
+                                        }
+
+                                        String allParamsText = String.join(", ", methodParametersTextList);
+
                                         PsiElement methodBody = classMethod.getLastChild();
 
+                                        if (methodBody instanceof GroupStatement) {
+                                            //@todo void methods should not use return keyword
+                                            String returnText = "return parent::" + methodName + "(" + allParamsText + ");";
+                                            GroupStatement newMethodBody = PhpPsiElementFactory.createFromText(this.project, GroupStatement.class, "{\n" + returnText + "\n}");
 
-                                        //@todo moe logic to separate function
-//                                        MethodImpl
+                                            if (newMethodBody == null) {
+                                                break;
+                                            }
 
-//                                        methodBody.
-                                        PhpReturn returnElement = PhpPsiElementFactory.createReturnStatement(this.project, "true");
-                                        PhpPsiElementFactory.createFromText(this.project, PsiElement, "{");
-
-
-                                        PhpDocComment methodComment = classMethod.getDocComment();
+                                            WriteCommandAction.runWriteCommandAction(this.project, () -> {
+                                                methodBody.replace(newMethodBody);
+                                            });
+                                        }
                                     }
-                                     */
                                 }
 
                                 /**
