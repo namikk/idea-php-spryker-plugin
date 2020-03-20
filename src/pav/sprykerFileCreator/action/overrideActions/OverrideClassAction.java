@@ -118,7 +118,7 @@ public class OverrideClassAction extends AnAction {
                                     /**
                                      * Add parent method calls
                                      */
-                                    Collection<Method> classMethods = ((PhpClassImpl) classElement).getMethods();
+                                    Method[] classMethods = ((PhpClassImpl) classElement).getOwnMethods();
                                     for (Method classMethod : classMethods) {
                                         String methodName = classMethod.getName();
                                         Parameter[] methodParametersList = classMethod.getParameters();
